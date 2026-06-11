@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<!--
+  このファイルが「つくば市 観光LP」のすべてです。
+  大きく分けて2つのパートでできています。
+   1) <style>...</style>  … 見た目（色・大きさ・配置）を決める部分（CSS）
+   2) <body>...</body>    … ページに表示する中身（文章や見出し）（HTML）
+  各セクションには日本語のコメント（<!-- -->で囲まれた説明）を付けています。
+-->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>つくば市 観光ガイド｜科学と自然が出会うまち</title>
+  <meta name="description" content="筑波山やJAXA、緑あふれる研究学園都市・つくば市の魅力とおすすめスポットを紹介する観光ガイドです。" />
+
+  <!-- Webフォント（日本語のきれいな書体）を読み込み -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ===== 全体の基本設定 ===== */
+    :root {
+      --green: #2e7d52;       /* 自然をイメージした緑 */
+      --green-dark: #1f5e3c;
+      --sky: #2a7de1;         /* 科学・空をイメージした青 */
+      --ink: #1c2b24;         /* 文字色 */
+      --paper: #f6f8f5;       /* 背景色 */
+      --card: #ffffff;
+      --shadow: 0 10px 30px rgba(31, 94, 60, .12);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Noto Sans JP", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3 { font-family: "Zen Maru Gothic", "Noto Sans JP", sans-serif; line-height: 1.4; }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    .wrap { width: min(1080px, 90%); margin-inline: auto; }
+
+    /* ===== ヘッダー（上部の固定メニュー） ===== */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(255,255,255,.9);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #e6ece8;
+    }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 66px; }
+    .logo { font-family: "Zen Maru Gothic"; font-weight: 700; font-size: 1.25rem; color: var(--green-dark); }
+    .logo span { color: var(--sky); }
+    .nav-links { display: flex; gap: 28px; font-weight: 500; font-size: .95rem; }
+    .nav-links a:hover { color: var(--green); }
+    @media (max-width: 720px) { .nav-links { display: none; } }
+
+    /* ===== ヒーロー（一番上の主役エリア） ===== */
+    .hero {
+      position: relative;
+      min-height: 88vh;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: #fff;
+      background:
+        linear-gradient(180deg, rgba(20,60,40,.55), rgba(20,60,40,.65)),
+        linear-gradient(135deg, #2e7d52 0%, #1f5e3c 40%, #1b4d7a 100%);
+      overflow: hidden;
+    }
+    /* ↑ 本番では、ここの背景を「筑波山の写真」などに差し替えると一気に本格的になります */
+    .hero-inner { padding: 40px 20px; max-width: 760px; }
+    .hero .eyebrow {
+      display: inline-block; letter-spacing: .25em; font-size: .8rem; font-weight: 700;
+      background: rgba(255,255,255,.18); padding: 8px 18px; border-radius: 999px; margin-bottom: 24px;
+    }
+    .hero h1 { font-size: clamp(2rem, 6vw, 3.6rem); font-weight: 900; text-shadow: 0 2px 20px rgba(0,0,0,.25); }
+    .hero p.lead { margin-top: 20px; font-size: clamp(1rem, 2.2vw, 1.2rem); opacity: .95; }
+    .hero-cta { margin-top: 36px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-block; padding: 14px 30px; border-radius: 999px; font-weight: 700;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { background: #fff; color: var(--green-dark); box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+    .btn-ghost { border: 2px solid rgba(255,255,255,.7); color: #fff; }
+
+    /* ===== 共通：セクションの見出し ===== */
+    section { padding: 88px 0; }
+    .section-head { text-align: center; margin-bottom: 56px; }
+    .section-head .label { color: var(--green); font-weight: 700; letter-spacing: .15em; font-size: .85rem; }
+    .section-head h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); margin-top: 8px; }
+    .section-head p { margin-top: 16px; color: #5a6b62; }
+
+    /* ===== 特徴（3つの魅力） ===== */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .feature {
+      background: var(--card); border-radius: 20px; padding: 40px 28px; text-align: center;
+      box-shadow: var(--shadow); border: 1px solid #eef2ef;
+    }
+    .feature .icon { font-size: 2.6rem; }
+    .feature h3 { margin: 16px 0 10px; font-size: 1.2rem; color: var(--green-dark); }
+    .feature p { color: #5a6b62; font-size: .96rem; }
+    @media (max-width: 820px) { .features { grid-template-columns: 1fr; } }
+
+    /* ===== おすすめスポット ===== */
+    .spots-section { background: linear-gradient(180deg, #eef4ef, #f6f8f5); }
+    .spots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; }
+    .spot {
+      background: var(--card); border-radius: 22px; overflow: hidden;
+      box-shadow: var(--shadow); border: 1px solid #eef2ef; display: flex; flex-direction: column;
+    }
+    .spot .photo {
+      height: 200px; display: grid; place-items: center; color: #fff; font-size: 3rem;
+      position: relative;
+    }
+    /* ↓ スポットごとの仮の背景色。本番では各スポットの写真に差し替えます */
+    .spot.s1 .photo { background: linear-gradient(135deg, #3a8a5e, #1f5e3c); }
+    .spot.s2 .photo { background: linear-gradient(135deg, #3d6fb0, #1b4d7a); }
+    .spot.s3 .photo { background: linear-gradient(135deg, #7a59c0, #4a2f86); }
+    .spot.s4 .photo { background: linear-gradient(135deg, #c9853f, #9c5a1f); }
+    .spot .body { padding: 26px 26px 30px; }
+    .spot h3 { font-size: 1.25rem; color: var(--green-dark); }
+    .spot .tag { display: inline-block; font-size: .75rem; font-weight: 700; color: var(--sky); margin-bottom: 8px; letter-spacing: .08em; }
+    .spot p { color: #5a6b62; margin-top: 10px; font-size: .96rem; }
+    @media (max-width: 820px) { .spots { grid-template-columns: 1fr; } }
+
+    /* ===== アクセス ===== */
+    .access-card {
+      background: var(--card); border-radius: 24px; box-shadow: var(--shadow);
+      border: 1px solid #eef2ef; padding: 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center;
+    }
+    .access-card h3 { color: var(--green-dark); font-size: 1.3rem; margin-bottom: 18px; }
+    .access-list li { list-style: none; padding: 12px 0; border-bottom: 1px dashed #dde6e0; display: flex; justify-content: space-between; gap: 16px; }
+    .access-list li:last-child { border-bottom: none; }
+    .access-list .from { color: #5a6b62; }
+    .access-list .time { font-weight: 700; color: var(--green); white-space: nowrap; }
+    .access-note { background: #eef4ef; border-radius: 18px; padding: 28px; }
+    .access-note strong { color: var(--green-dark); }
+    @media (max-width: 820px) { .access-card { grid-template-columns: 1fr; padding: 32px; } }
+
+    /* ===== 締めの呼びかけ（CTA） ===== */
+    .cta {
+      text-align: center; color: #fff;
+      background: linear-gradient(135deg, #2e7d52, #1b4d7a);
+      border-radius: 28px; padding: 64px 24px; box-shadow: var(--shadow);
+    }
+    .cta h2 { font-size: clamp(1.6rem, 4vw, 2.2rem); }
+    .cta p { margin: 16px auto 32px; max-width: 540px; opacity: .95; }
+
+    /* ===== フッター ===== */
+    footer { background: var(--ink); color: #c8d4ce; padding: 48px 0 36px; text-align: center; }
+    footer .logo { color: #fff; margin-bottom: 10px; }
+    footer .small { font-size: .82rem; opacity: .7; margin-top: 18px; }
+  </style>
+</head>
+
+<body>
+
+  <!-- ===== ヘッダー：ページ上部に固定されるメニュー ===== -->
+  <header>
+    <div class="wrap nav">
+      <div class="logo">つくば<span>STORY</span></div>
+      <nav class="nav-links">
+        <a href="#about">つくばとは</a>
+        <a href="#spots">おすすめスポット</a>
+        <a href="#access">アクセス</a>
+        <a href="#cta">おでかけ計画</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== ヒーロー：最初に目に入る主役エリア ===== -->
+  <section class="hero">
+    <div class="hero-inner">
+      <span class="eyebrow">IBARAKI ・ TSUKUBA</span>
+      <h1>科学と自然が出会うまち、<br />つくばへ。</h1>
+      <p class="lead">日本百名山「筑波山」の緑と、宇宙へつながる最先端の研究施設。<br />都心から最短45分、週末のおでかけにちょうどいい知的な街です。</p>
+      <div class="hero-cta">
+        <a href="#spots" class="btn btn-primary">おすすめスポットを見る</a>
+        <a href="#access" class="btn btn-ghost">アクセスを確認</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== つくばとは：3つの魅力 ===== -->
+  <section id="about">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="label">ABOUT TSUKUBA</div>
+        <h2>つくば、3つの魅力</h2>
+        <p>「研究学園都市」として発展したつくばは、自然・科学・暮らしやすさがひとつにそろった街です。</p>
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="icon">🏔️</div>
+          <h3>雄大な自然</h3>
+          <p>日本百名山のひとつ「筑波山」。ケーブルカーやロープウェイで気軽に登れ、関東平野を一望できます。</p>
+        </div>
+        <div class="feature">
+          <div class="icon">🚀</div>
+          <h3>最先端の科学</h3>
+          <p>JAXA筑波宇宙センターをはじめ、数多くの研究機関が集まる日本有数のサイエンスシティです。</p>
+        </div>
+        <div class="feature">
+          <div class="icon">🌳</div>
+          <h3>歩いて楽しい街</h3>
+          <p>広い歩道と公園、緑の並木道。家族でもひとりでも、ゆったり過ごせる開放的な街並みが広がります。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== おすすめスポット ===== -->
+  <section id="spots" class="spots-section">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="label">RECOMMENDED SPOTS</div>
+        <h2>おすすめスポット</h2>
+        <p>定番からちょっと知的なお出かけまで。つくばで訪れたい4つの場所。</p>
+      </div>
+      <div class="spots">
+        <div class="spot s1">
+          <div class="photo">🏔️</div>
+          <div class="body">
+            <span class="tag">自然・絶景</span>
+            <h3>筑波山</h3>
+            <p>「西の富士、東の筑波」と称される名峰。男体山と女体山のふたつの峰を持ち、四季折々の登山やケーブルカーからの眺望が楽しめます。</p>
+          </div>
+        </div>
+        <div class="spot s2">
+          <div class="photo">🚀</div>
+          <div class="body">
+            <span class="tag">科学・体験</span>
+            <h3>JAXA筑波宇宙センター</h3>
+            <p>日本の宇宙開発の中心地。本物のロケットやきぼう実験棟の展示を見学でき、大人も子どもも夢中になれます。</p>
+          </div>
+        </div>
+        <div class="spot s3">
+          <div class="photo">🪐</div>
+          <div class="body">
+            <span class="tag">学び・室内</span>
+            <h3>つくばエキスポセンター</h3>
+            <p>世界最大級のプラネタリウムと、楽しい科学体験展示が魅力。雨の日のおでかけ先にもぴったりです。</p>
+          </div>
+        </div>
+        <div class="spot s4">
+          <div class="photo">🌿</div>
+          <div class="body">
+            <span class="tag">自然・癒し</span>
+            <h3>筑波実験植物園</h3>
+            <p>国立科学博物館が運営する広大な植物園。世界各地の植物に出会え、四季の散策スポットとして人気です。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== アクセス ===== -->
+  <section id="access">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="label">ACCESS</div>
+        <h2>つくばへの行き方</h2>
+        <p>つくばエクスプレス(TX)で都心から一直線。思い立ったらすぐ行ける近さです。</p>
+      </div>
+      <div class="access-card">
+        <div>
+          <h3>🚆 電車でのアクセス（つくばエクスプレス）</h3>
+          <ul class="access-list">
+            <li><span class="from">秋葉原駅 から</span><span class="time">最短 約45分</span></li>
+            <li><span class="from">北千住駅 から</span><span class="time">最短 約35分</span></li>
+            <li><span class="from">南流山駅 から</span><span class="time">最短 約20分</span></li>
+          </ul>
+        </div>
+        <div class="access-note">
+          <p><strong>📍 つくば駅から各スポットへ</strong></p>
+          <p>つくば駅からは、市内を結ぶバスや「つくばサイエンスツアーバス」が便利。筑波山方面へは直通シャトルバスも運行しています。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 締めの呼びかけ ===== -->
+  <section id="cta">
+    <div class="wrap">
+      <div class="cta">
+        <h2>次の週末は、つくばへ。</h2>
+        <p>自然も、科学も、おいしいものも。あなただけのおでかけプランを、つくばで見つけてください。</p>
+        <a href="#spots" class="btn btn-primary">スポットをもう一度見る</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== フッター ===== -->
+  <footer>
+    <div class="wrap">
+      <div class="logo">つくば<span style="color:#7fc4a0">STORY</span></div>
+      <p>科学と自然が出会うまち、つくばの観光ガイド</p>
+      <p class="small">※ 本ページは観光紹介を目的としたサンプルです。各施設の最新の営業時間・料金・運行情報は公式サイトでご確認ください。</p>
+    </div>
+  </footer>
+
+</body>
+</html>
