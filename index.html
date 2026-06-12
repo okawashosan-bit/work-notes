@@ -22,7 +22,7 @@
   <!-- Webフォント（日本語のきれいな書体）を読み込み -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Shippori+Mincho:wght@500;600;700;800&display=swap" rel="stylesheet" />
 
   <style>
     /* ===== 全体の基本設定 ===== */
@@ -44,7 +44,7 @@
       line-height: 1.8;
       -webkit-font-smoothing: antialiased;
     }
-    h1, h2, h3 { font-family: "Zen Maru Gothic", "Noto Sans JP", sans-serif; line-height: 1.4; }
+    h1, h2, h3 { font-family: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif; line-height: 1.5; }
     a { color: inherit; text-decoration: none; }
     img { max-width: 100%; display: block; }
     .wrap { width: min(1080px, 90%); margin-inline: auto; }
@@ -57,7 +57,7 @@
       border-bottom: 1px solid #e6ece8;
     }
     .nav { display: flex; align-items: center; justify-content: space-between; height: 66px; }
-    .logo { font-family: "Zen Maru Gothic"; font-weight: 700; font-size: 1.25rem; color: var(--green-dark); }
+    .logo { font-family: "Shippori Mincho", serif; font-weight: 800; font-size: 1.25rem; color: var(--green-dark); }
     .logo span { color: var(--sky); }
     .nav-links { display: flex; gap: 26px; font-weight: 500; font-size: .95rem; }
     .nav-links a:hover { color: var(--green); }
@@ -112,12 +112,21 @@
     /* ===== 特徴（3つの魅力） ===== */
     .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
     .feature {
-      background: var(--card); border-radius: 20px; padding: 40px 28px; text-align: center;
+      background: var(--card); border-radius: 20px; overflow: hidden; text-align: center;
       box-shadow: var(--shadow); border: 1px solid #eef2ef;
     }
-    .feature .icon { font-size: 2.6rem; }
-    .feature h3 { margin: 16px 0 10px; font-size: 1.2rem; color: var(--green-dark); }
-    .feature p { color: #5a6b62; font-size: .96rem; }
+    /* 写真の置き場所。写真が出ないときは背景色＋絵文字が表示される保険つき */
+    .feature .photo {
+      position: relative; height: 190px; display: grid; place-items: center;
+      color: #fff; font-size: 2.6rem; overflow: hidden;
+    }
+    .feature.f1 .photo { background: linear-gradient(135deg, #3a8a5e, #1f5e3c); }
+    .feature.f2 .photo { background: linear-gradient(135deg, #3d6fb0, #1b4d7a); }
+    .feature.f3 .photo { background: linear-gradient(135deg, #5a9e6f, #2e7d52); }
+    .feature .photo-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .feature-body { padding: 28px 26px 34px; }
+    .feature h3 { margin: 0 0 10px; font-size: 1.2rem; color: var(--green-dark); }
+    .feature-body p { color: #5a6b62; font-size: .96rem; }
     @media (max-width: 820px) { .features { grid-template-columns: 1fr; } }
 
     /* ===== おすすめスポット（写真つき） ===== */
@@ -158,7 +167,7 @@
       background: linear-gradient(135deg, var(--green), var(--green-dark)); color: #fff;
       border-radius: 14px; padding: 12px 6px;
     }
-    .event .when .mon { font-family: "Zen Maru Gothic"; font-weight: 700; font-size: 1.05rem; line-height: 1.2; }
+    .event .when .mon { font-family: "Shippori Mincho", serif; font-weight: 700; font-size: 1.05rem; line-height: 1.2; }
     .event .when .season { font-size: .68rem; opacity: .9; margin-top: 2px; }
     .event h3 { font-size: 1.15rem; color: var(--green-dark); }
     .event p { color: #5a6b62; font-size: .94rem; margin-top: 6px; }
@@ -234,20 +243,41 @@
         <p>「研究学園都市」として発展したつくばは、自然・科学・暮らしやすさがひとつにそろった街です。</p>
       </div>
       <div class="features">
-        <div class="feature">
-          <div class="icon">🏔️</div>
-          <h3>雄大な自然</h3>
-          <p>日本百名山のひとつ「筑波山」。ケーブルカーやロープウェイで気軽に登れ、関東平野を一望できます。</p>
+        <div class="feature f1">
+          <div class="photo">
+            🏔️
+            <img class="photo-img" loading="lazy" alt="筑波山の雄大な自然"
+                 src="https://commons.wikimedia.org/wiki/Special:FilePath/Mount%20Tsukuba%20seen%20from%20Ikuta%20Rokuchi.JPG?width=900"
+                 onerror="this.remove()" />
+          </div>
+          <div class="feature-body">
+            <h3>雄大な自然</h3>
+            <p>日本百名山のひとつ「筑波山」。ケーブルカーやロープウェイで気軽に登れ、関東平野を一望できます。</p>
+          </div>
         </div>
-        <div class="feature">
-          <div class="icon">🚀</div>
-          <h3>最先端の科学</h3>
-          <p>JAXA筑波宇宙センターをはじめ、数多くの研究機関が集まる日本有数のサイエンスシティです。</p>
+        <div class="feature f2">
+          <div class="photo">
+            🚀
+            <img class="photo-img" loading="lazy" alt="JAXA筑波宇宙センター"
+                 src="https://commons.wikimedia.org/wiki/Special:FilePath/Tsukuba%20Space%20Center%20Main%20Gate.jpg?width=900"
+                 onerror="this.remove()" />
+          </div>
+          <div class="feature-body">
+            <h3>最先端の科学</h3>
+            <p>JAXA筑波宇宙センターをはじめ、数多くの研究機関が集まる日本有数のサイエンスシティです。</p>
+          </div>
         </div>
-        <div class="feature">
-          <div class="icon">🌳</div>
-          <h3>歩いて楽しい街</h3>
-          <p>広い歩道と公園、緑の並木道。家族でもひとりでも、ゆったり過ごせる開放的な街並みが広がります。</p>
+        <div class="feature f3">
+          <div class="photo">
+            🌳
+            <img class="photo-img" loading="lazy" alt="つくばの街並み"
+                 src="https://commons.wikimedia.org/wiki/Special:FilePath/Panoramic%20view%20of%20downtown%20Tsukuba.jpg?width=900"
+                 onerror="this.remove()" />
+          </div>
+          <div class="feature-body">
+            <h3>歩いて楽しい街</h3>
+            <p>広い歩道と公園、緑の並木道。家族でもひとりでも、ゆったり過ごせる開放的な街並みが広がります。</p>
+          </div>
         </div>
       </div>
     </div>
