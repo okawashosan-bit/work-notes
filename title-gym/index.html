@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>タイトル発想ジム｜Instagram運用の学びを貯める</title>
+<style>
+  /* ===== デザインの基本設定 ===== */
+  :root {
+    --bg: #faf7f2;
+    --card: #ffffff;
+    --ink: #2b2b2b;
+    --sub: #7a736b;
+    --line: #e7e0d6;
+    --accent: #c9824a;     /* 工務店っぽい温かみのある色 */
+    --accent-dark: #a8662f;
+    --good: #3f9c6a;
+    --shadow: 0 4px 16px rgba(0,0,0,.06);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.7;
+  }
+  header {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: #fff;
+    padding: 22px 20px;
+    text-align: center;
+  }
+  header h1 { margin: 0; font-size: 1.35rem; letter-spacing: .02em; }
+  header p { margin: 6px 0 0; font-size: .82rem; opacity: .92; }
+
+  /* タブ切り替え */
+  nav {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    background: var(--card);
+    padding: 10px;
+    position: sticky;
+    top: 0;
+    box-shadow: var(--shadow);
+    z-index: 10;
+    flex-wrap: wrap;
+  }
+  nav button {
+    border: none;
+    background: transparent;
+    color: var(--sub);
+    font-size: .9rem;
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  nav button.active { background: var(--accent); color: #fff; }
+
+  main { max-width: 720px; margin: 0 auto; padding: 18px 16px 60px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .step-label {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+  }
+  h2 { font-size: 1.05rem; margin: 4px 0 10px; }
+  h3 { font-size: .95rem; margin: 0 0 6px; }
+  .hint { font-size: .8rem; color: var(--sub); margin: 0 0 12px; }
+
+  label { display: block; font-size: .85rem; font-weight: 600; margin: 12px 0 4px; }
+  input[type="text"], textarea, select {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: .92rem;
+    font-family: inherit;
+    background: #fffdfa;
+    color: var(--ink);
+  }
+  textarea { resize: vertical; min-height: 70px; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); border-color: transparent; }
+
+  .btn {
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    padding: 11px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: .92rem;
+  }
+  .btn:hover { background: var(--accent-dark); }
+  .btn.secondary { background: #efe9e0; color: var(--ink); }
+  .btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .btn.small { padding: 6px 12px; font-size: .8rem; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* 「先に自分で」を強調するロック演出 */
+  .locked { opacity: .45; pointer-events: none; filter: grayscale(.3); }
+  .lock-note {
+    background: #fff6ec;
+    border: 1px dashed var(--accent);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: .82rem;
+    color: var(--accent-dark);
+    margin-bottom: 10px;
+  }
+
+  /* 型ライブラリ */
+  .hook-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 6px; }
+  .hook-chip {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: .78rem;
+    cursor: pointer;
+    background: #fffdfa;
+    user-select: none;
+  }
+  .hook-chip.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .hook-chip b { display: block; font-size: .82rem; margin-bottom: 2px; }
+  .hook-chip span { color: var(--sub); }
+  .hook-chip.selected span { color: #ffe9d6; }
+
+  details.lib { margin-top: 10px; }
+  details.lib summary { cursor: pointer; font-weight: 600; font-size: .85rem; color: var(--accent-dark); }
+  .lib-item { border-top: 1px solid var(--line); padding: 8px 0; font-size: .82rem; }
+  .lib-item b { color: var(--accent-dark); }
+  .lib-item em { color: var(--sub); font-style: normal; }
+
+  /* 一覧 */
+  .entry { border-left: 4px solid var(--accent); }
+  .entry .meta { font-size: .75rem; color: var(--sub); }
+  .entry .title-final { font-size: 1.02rem; font-weight: 700; margin: 4px 0; }
+  .kv { font-size: .82rem; margin: 3px 0; }
+  .kv b { color: var(--accent-dark); }
+  .pill { display: inline-block; background: #f1ebe2; color: var(--sub); font-size: .72rem; padding: 2px 9px; border-radius: 999px; margin: 2px 4px 2px 0; }
+  .result-box { background: #f3f9f5; border: 1px solid #cfe6d8; border-radius: 10px; padding: 8px 12px; margin-top: 8px; font-size: .82rem; }
+
+  .rank-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: .88rem; }
+  .rank-bar { height: 8px; background: var(--accent); border-radius: 999px; }
+  .empty { text-align: center; color: var(--sub); padding: 30px 10px; font-size: .9rem; }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 999px;
+    font-size: .85rem; opacity: 0; transition: opacity .25s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏋️ タイトル発想ジム</h1>
+  <p>AIに丸投げせず、使うほど「効くタイトルの型」が貯まる</p>
+</header>
+
+<nav>
+  <button data-view="new" class="active">✍️ 新しく考える</button>
+  <button data-view="list">📚 記録一覧</button>
+  <button data-view="insight">💡 知見集</button>
+</nav>
+
+<main>
+  <!-- ========== ① 新しく考える ========== -->
+  <section id="view-new" class="view active">
+
+    <div class="card">
+      <span class="step-label">STEP 1 ｜ お題を決める</span>
+      <h2>この投稿は「誰に・何を」届ける?</h2>
+      <p class="hint">タイトルを考える前に、ゴールをハッキリさせるのがプロの第一歩。</p>
+      <label>テーマ（投稿の内容）</label>
+      <input type="text" id="theme" placeholder="例：冬でも暖かい高断熱の家づくり" />
+      <label>ターゲット（誰に向ける?）</label>
+      <input type="text" id="target" placeholder="例：寒い家に悩む子育て世帯（30代夫婦）" />
+      <label>一番伝えたいこと / 取ってほしい行動</label>
+      <input type="text" id="goal" placeholder="例：断熱性能の高さを実感してほしい / 保存してほしい" />
+    </div>
+
+    <div class="card">
+      <span class="step-label">STEP 2 ｜ まず自分で考える 💪</span>
+      <h2>あなたのタイトル案</h2>
+      <p class="hint">ここが思考の筋トレ。AIを見る前に、最低1案ひねり出すのがルール。<br>下の「型ライブラリ」を見ながらでOK。使った型も選んでおこう。</p>
+
+      <label>自分のタイトル案（1行に1案）</label>
+      <textarea id="myTitles" placeholder="例：&#10;冬の朝、布団から出るのがツラくない家&#10;光熱費は半分、暖かさは2倍の理由"></textarea>
+
+      <label>使った（使いたい）型を選ぶ</label>
+      <div class="hook-grid" id="myHooks"></div>
+
+      <details class="lib">
+        <summary>📖 タイトルの型ライブラリを見る（10種）</summary>
+        <div id="libList"></div>
+      </details>
+    </div>
+
+    <div class="card">
+      <span class="step-label">STEP 3 ｜ AIに“型と理由つき”で提案させる</span>
+      <h2>AIに賢く聞く</h2>
+      <p class="hint">「案だけ」もらうと学びゼロ。<b>型と“なぜ効くか”をセットで</b>出させ、自分の案へのダメ出しももらう。下のボタンでプロンプトを生成→コピーしてChatGPT/Claudeに貼り付け。</p>
+
+      <div class="lock-note" id="aiLock">🔒 STEP2であなたの案を1つ以上書くと、ここが開きます。（先に自分で考えるため）</div>
+
+      <div id="aiArea" class="locked">
+        <div class="btn-row">
+          <button class="btn ghost small" id="genPrompt" type="button">🤖 AIへの依頼文を作ってコピー</button>
+        </div>
+        <label>AIの提案（コピーした返答を貼り付け）</label>
+        <textarea id="aiTitles" placeholder="AIが出したタイトル案＋型＋理由をそのまま貼り付け"></textarea>
+        <label>AIの提案で「なるほど」と思った理由・気づき</label>
+        <textarea id="aiReason" placeholder="例：『問いかけ型』は読み手に自分ごと化させる効果があると分かった"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="step-label">STEP 4 ｜ 採用と理由</span>
+      <h2>どれを、なぜ選んだ?</h2>
+      <label>採用したタイトル（最終決定）</label>
+      <input type="text" id="chosenTitle" placeholder="実際に投稿に使うタイトル" />
+      <label>どこから?</label>
+      <select id="chosenFrom">
+        <option value="自分の案">自分の案そのまま</option>
+        <option value="AIの案">AIの案そのまま</option>
+        <option value="ミックス">自分＋AIのミックス</option>
+      </select>
+      <label>その案を選んだ理由</label>
+      <textarea id="chosenReason" placeholder="例：ターゲットの『寒さの悩み』に一番刺さると思ったから"></textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" id="saveEntry" type="button">💾 この回を記録する</button>
+      <button class="btn secondary" id="clearForm" type="button">入力をクリア</button>
+    </div>
+    <p class="hint" style="margin-top:10px">※ 投稿後の数字（保存数・リーチなど）は、記録したあと「📚記録一覧」から追記できます。そこで初めて学びが完成します。</p>
+  </section>
+
+  <!-- ========== ② 記録一覧 ========== -->
+  <section id="view-list" class="view">
+    <div class="btn-row" style="justify-content:flex-end">
+      <button class="btn secondary small" id="exportMd" type="button">📤 Markdownで書き出し</button>
+      <button class="btn secondary small" id="exportJson" type="button">💾 バックアップ(JSON)</button>
+    </div>
+    <div id="entryList"></div>
+  </section>
+
+  <!-- ========== ③ 知見集 ========== -->
+  <section id="view-insight" class="view">
+    <div class="card">
+      <h2>💡 効いた型ランキング</h2>
+      <p class="hint">採用した投稿のうち、結果（保存数）を入力したものから集計。<br>「自分の客に何が効くか」が数字で見えてくる。</p>
+      <div id="ranking"></div>
+    </div>
+    <div class="card">
+      <h2>📖 タイトルの型ライブラリ</h2>
+      <p class="hint">迷ったらここに戻る。10個の型を体に染み込ませよう。</p>
+      <div id="libList2"></div>
+    </div>
+    <div class="card">
+      <h2>📝 これまでの学びメモ</h2>
+      <div id="learnLog"></div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   タイトル発想ジム  ロジック
+   - データはブラウザのlocalStorageに保存（サーバー不要）
+   - 1ファイルで完結
+   ========================================================= */
+
+// --- タイトルの型ライブラリ（工務店向けの例つき） ---
+const HOOKS = [
+  { name: "数字・データ", desc: "具体的な数字で説得力", ex: "光熱費が年6万円下がる家" },
+  { name: "問いかけ", desc: "読み手の頭に問いを立てる", ex: "冬の光熱費、高すぎませんか?" },
+  { name: "逆説・意外", desc: "常識をひっくり返す", ex: "断熱はコストではなく投資です" },
+  { name: "ベネフィット", desc: "得られる未来を見せる", ex: "冬でも素足で過ごせる家" },
+  { name: "損失回避", desc: "失う・損する恐怖に訴える", ex: "知らないと損する住宅補助金" },
+  { name: "共感・あるある", desc: "読み手のあるあるを突く", ex: "片付かないリビング、原因は収納じゃない" },
+  { name: "実績・権威", desc: "信頼の裏付けを見せる", ex: "施工200棟が選んだ間取り" },
+  { name: "ストーリー", desc: "物語で引き込む", ex: "築30年の実家を建て替えた話" },
+  { name: "限定・緊急", desc: "今動く理由をつくる", ex: "今月末まで｜モデルハウス公開" },
+  { name: "ハウツー", desc: "役立つ手順・基準を示す", ex: "失敗しない土地選び5つの基準" },
+];
+
+const STORE_KEY = "title-gym-entries";
+const $ = (id) => document.getElementById(id);
+
+// --- 保存データの読み書き ---
+function loadEntries() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
+  catch { return []; }
+}
+function saveEntries(list) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(list));
+}
+
+// --- トースト通知 ---
+let toastTimer;
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+// --- タブ切り替え ---
+document.querySelectorAll("nav button").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("nav button").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+    btn.classList.add("active");
+    $("view-" + btn.dataset.view).classList.add("active");
+    if (btn.dataset.view === "list") renderList();
+    if (btn.dataset.view === "insight") renderInsight();
+  });
+});
+
+// --- 型チップ（選択式）を描画 ---
+let selectedHooks = new Set();
+function renderHookChips() {
+  const grid = $("myHooks");
+  grid.innerHTML = "";
+  HOOKS.forEach((h) => {
+    const chip = document.createElement("div");
+    chip.className = "hook-chip";
+    chip.innerHTML = `<b>${h.name}</b><span>${h.desc}</span>`;
+    chip.addEventListener("click", () => {
+      if (selectedHooks.has(h.name)) { selectedHooks.delete(h.name); chip.classList.remove("selected"); }
+      else { selectedHooks.add(h.name); chip.classList.add("selected"); }
+    });
+    grid.appendChild(chip);
+  });
+}
+
+// --- 型ライブラリ（解説）を描画 ---
+function renderLib(targetId) {
+  const box = $(targetId);
+  box.innerHTML = HOOKS.map((h) =>
+    `<div class="lib-item"><b>${h.name}</b>：${h.desc}　<em>例「${h.ex}」</em></div>`
+  ).join("");
+}
+
+// --- STEP2を書いたらSTEP3を開放する ---
+function checkUnlock() {
+  const hasMine = $("myTitles").value.trim().length > 0;
+  $("aiArea").classList.toggle("locked", !hasMine);
+  $("aiLock").style.display = hasMine ? "none" : "block";
+}
+$("myTitles").addEventListener("input", checkUnlock);
+
+// --- AIへの依頼プロンプトを生成してコピー ---
+$("genPrompt").addEventListener("click", async () => {
+  const theme = $("theme").value.trim() || "（未入力）";
+  const target = $("target").value.trim() || "（未入力）";
+  const goal = $("goal").value.trim() || "（未入力）";
+  const mine = $("myTitles").value.trim() || "（まだ無し）";
+  const prompt =
+`あなたはInstagram運用のプロのコピーライターです。次の投稿のタイトル案を5つ提案してください。
+
+# 投稿の情報
+- テーマ：${theme}
+- ターゲット：${target}
+- 伝えたいこと/取ってほしい行動：${goal}
+
+# 私が自分で考えた案
+${mine}
+
+# お願い（必ず守ってください）
+1. 5案それぞれに「使った型（例：問いかけ型／数字型 など）」と「なぜそのターゲットに効くのか」を1行ずつ添える。
+2. 最後に、私が考えた上の案について、良い点と改善点を率直にコメントする。
+3. 専門用語は初心者にも分かるように説明する。`;
+  try {
+    await navigator.clipboard.writeText(prompt);
+    toast("依頼文をコピーしました！AIに貼り付けてね");
+  } catch {
+    // クリップボードが使えない環境（file://等）向けのフォールバック
+    $("aiTitles").value = prompt + "\n\n--- ↑これをAIに貼り、返答でこの文を置き換えてください ---";
+    toast("コピー不可のため依頼文を下に出しました");
+  }
+});
+
+// --- 記録を保存 ---
+$("saveEntry").addEventListener("click", () => {
+  const chosen = $("chosenTitle").value.trim();
+  if (!chosen) { toast("採用タイトル（STEP4）を入れてね"); return; }
+  const entry = {
+    id: Date.now(),
+    date: new Date().toISOString().slice(0, 10),
+    theme: $("theme").value.trim(),
+    target: $("target").value.trim(),
+    goal: $("goal").value.trim(),
+    myTitles: $("myTitles").value.trim(),
+    myHooks: [...selectedHooks],
+    aiTitles: $("aiTitles").value.trim(),
+    aiReason: $("aiReason").value.trim(),
+    chosenTitle: chosen,
+    chosenFrom: $("chosenFrom").value,
+    chosenReason: $("chosenReason").value.trim(),
+    result: null,      // 後から追記：{ saves, reach, likes }
+    learning: "",      // 後から追記：振り返りメモ
+  };
+  const list = loadEntries();
+  list.unshift(entry);
+  saveEntries(list);
+  toast("記録しました！投稿後に数字を追記してね");
+  clearForm();
+});
+
+function clearForm() {
+  ["theme","target","goal","myTitles","aiTitles","aiReason","chosenTitle","chosenReason"].forEach((id) => $(id).value = "");
+  $("chosenFrom").value = "自分の案";
+  selectedHooks.clear();
+  renderHookChips();
+  checkUnlock();
+}
+$("clearForm").addEventListener("click", () => { clearForm(); toast("クリアしました"); });
+
+// --- 記録一覧を描画 ---
+function renderList() {
+  const list = loadEntries();
+  const box = $("entryList");
+  if (list.length === 0) {
+    box.innerHTML = `<div class="empty">まだ記録がありません。<br>「✍️ 新しく考える」から1本目を作ってみよう。</div>`;
+    return;
+  }
+  box.innerHTML = list.map((e) => {
+    const hooks = e.myHooks.map((h) => `<span class="pill">${h}</span>`).join("") || "<span class='pill'>型なし</span>";
+    const result = e.result
+      ? `<div class="result-box">📊 保存 ${e.result.saves ?? "-"} ／ リーチ ${e.result.reach ?? "-"} ／ いいね ${e.result.likes ?? "-"}<br>${e.learning ? "📝 " + escapeHtml(e.learning) : ""}</div>`
+      : `<div class="btn-row"><button class="btn ghost small" onclick="addResult(${e.id})">📊 投稿後の数字を追記</button></div>`;
+    return `<div class="card entry">
+      <div class="meta">${e.date}</div>
+      <div class="title-final">「${escapeHtml(e.chosenTitle)}」</div>
+      <div class="kv"><b>採用元</b>：${e.chosenFrom}</div>
+      ${e.theme ? `<div class="kv"><b>テーマ</b>：${escapeHtml(e.theme)}</div>` : ""}
+      ${e.chosenReason ? `<div class="kv"><b>選んだ理由</b>：${escapeHtml(e.chosenReason)}</div>` : ""}
+      <div class="kv"><b>使った型</b>：${hooks}</div>
+      ${result}
+      <div class="btn-row"><button class="btn secondary small" onclick="delEntry(${e.id})">削除</button></div>
+    </div>`;
+  }).join("");
+}
+
+// --- 投稿後の数字を追記 ---
+window.addResult = function(id) {
+  const list = loadEntries();
+  const e = list.find((x) => x.id === id);
+  if (!e) return;
+  const saves = prompt("保存数は?（数字のみ。分からなければ空でOK）", e.result?.saves ?? "");
+  if (saves === null) return; // キャンセル
+  const reach = prompt("リーチ数は?", e.result?.reach ?? "");
+  const likes = prompt("いいね数は?", e.result?.likes ?? "");
+  const learning = prompt("この投稿から学んだこと（効いた型・次に活かすこと）は?", e.learning ?? "");
+  e.result = {
+    saves: saves === "" ? null : Number(saves),
+    reach: reach === "" || reach === null ? null : Number(reach),
+    likes: likes === "" || likes === null ? null : Number(likes),
+  };
+  e.learning = learning ?? "";
+  saveEntries(list);
+  renderList();
+  toast("数字を記録しました！知見集に反映されます");
+};
+
+window.delEntry = function(id) {
+  if (!confirm("この記録を削除しますか?")) return;
+  saveEntries(loadEntries().filter((x) => x.id !== id));
+  renderList();
+  toast("削除しました");
+};
+
+// --- 知見集（ランキング・学びログ）を描画 ---
+function renderInsight() {
+  renderLib("libList2");
+  const list = loadEntries();
+
+  // 型ごとの保存数を集計（結果入力済みのものだけ）
+  const stat = {};
+  list.forEach((e) => {
+    if (!e.result || e.result.saves == null) return;
+    e.myHooks.forEach((h) => {
+      if (!stat[h]) stat[h] = { sum: 0, count: 0 };
+      stat[h].sum += e.result.saves;
+      stat[h].count += 1;
+    });
+  });
+  const ranked = Object.entries(stat)
+    .map(([name, s]) => ({ name, avg: Math.round(s.sum / s.count), count: s.count }))
+    .sort((a, b) => b.avg - a.avg);
+
+  const rankBox = $("ranking");
+  if (ranked.length === 0) {
+    rankBox.innerHTML = `<div class="empty">まだデータがありません。<br>記録一覧で「投稿後の数字」を入力すると、ここに集計されます。</div>`;
+  } else {
+    const max = ranked[0].avg || 1;
+    rankBox.innerHTML = ranked.map((r, i) =>
+      `<div class="rank-row">
+        <span style="width:1.4em">${i + 1}</span>
+        <span style="flex:1"><b>${r.name}</b><br><span class="rank-bar" style="width:${Math.max(8, (r.avg / max) * 100)}%; display:inline-block"></span></span>
+        <span style="text-align:right; min-width:90px">平均保存 ${r.avg}<br><small style="color:var(--sub)">(${r.count}件)</small></span>
+      </div>`
+    ).join("");
+  }
+
+  // 学びログ
+  const logs = list.filter((e) => e.learning && e.learning.trim());
+  const logBox = $("learnLog");
+  logBox.innerHTML = logs.length
+    ? logs.map((e) => `<div class="kv">・<b>${e.date}</b> ${escapeHtml(e.learning)}</div>`).join("")
+    : `<div class="empty">学びメモはまだありません。<br>数字を追記するときに「学んだこと」を書くと貯まります。</div>`;
+}
+
+// --- 書き出し（バックアップ＆Markdown） ---
+function download(filename, text) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
+  a.download = filename;
+  a.click();
+}
+$("exportJson").addEventListener("click", () => {
+  download("title-gym-backup.json", JSON.stringify(loadEntries(), null, 2));
+  toast("バックアップを保存しました");
+});
+$("exportMd").addEventListener("click", () => {
+  const list = loadEntries();
+  if (!list.length) { toast("記録がありません"); return; }
+  const md = list.map((e) =>
+`## ${e.date}「${e.chosenTitle}」
+- テーマ：${e.theme}
+- ターゲット：${e.target}
+- 採用元：${e.chosenFrom}／理由：${e.chosenReason}
+- 使った型：${e.myHooks.join("、")}
+- 自分の案：\n${e.myTitles.split("\n").map(s=>"  - "+s).join("\n")}
+- AIの気づき：${e.aiReason}
+- 結果：${e.result ? `保存${e.result.saves} リーチ${e.result.reach} いいね${e.result.likes}` : "未入力"}
+- 学び：${e.learning}`
+  ).join("\n\n");
+  download("title-gym-notes.md", "# タイトル発想ジム 記録\n\n" + md);
+  toast("Markdownを書き出しました");
+});
+
+// --- HTMLエスケープ（入力をそのまま表示する箇所の安全対策） ---
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// --- 初期描画 ---
+renderHookChips();
+renderLib("libList");
+checkUnlock();
+</script>
+</body>
+</html>
