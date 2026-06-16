@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  shosan スロット  ―  Step 1：土台（基本のスロット）
+  ============================================================
+  このファイル1つで動きます（HTML / CSS / JavaScript すべて同梱）。
+
+  ▼ Step1 でできること
+   ・3×3 の窓に絵柄が「ぐるぐる」回る
+   ・スピンボタンで回す → リールが順番に止まる
+   ・「横3列」＋「斜め2本」のどれかで同じ絵柄が3つそろえばアタリ
+   ・そろった絵柄に応じてポイントが加算される
+
+  ▼ 絵柄について（あとで shosan のイラストに差し替える方法）
+   下の JavaScript 内 `SYMBOLS` 配列を編集します。
+   今は絵文字（emoji）を仮で使っていますが、画像にする場合は
+   このフォルダに images/ を作って画像を置き、
+   後ほど <img> 表示に切り替えます（次の Step で対応可能）。
+
+  ▼ 窓枠の画像について
+   現在は CSS で枠を描いています。お手元の「窓枠素材」を
+   このフォルダに frame.png として置けば、後で背景に差し込めます。
+  ============================================================
+-->
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>shosan スロット ｜ Step 1</title>
+<style>
+  /* ===== 全体の基本設定 ===== */
+  :root{
+    --gold:#f4c430;        /* 金色（枠やボタン） */
+    --gold-dark:#b8860b;
+    --bg1:#1b1033;         /* 背景（上） */
+    --bg2:#2a0f4a;         /* 背景（下） */
+    --frame:#2c2c3a;       /* 窓枠の地色 */
+    --cell:#fffdf5;        /* マス（絵柄が乗る背景） */
+    --cellH: 92px;         /* マス1個の高さ（リール計算の基準） */
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    color:#fff;
+    background:radial-gradient(circle at 50% 0%, var(--bg2), var(--bg1));
+    min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:24px 16px 48px;
+  }
+  h1{
+    font-size:1.6rem; letter-spacing:.05em; margin-bottom:4px;
+    text-shadow:0 2px 8px rgba(0,0,0,.5);
+  }
+  h1 span{ color:var(--gold); }
+  .subtitle{ font-size:.8rem; opacity:.65; margin-bottom:20px; }
+
+  /* ===== スコア表示 ===== */
+  .scoreboard{
+    display:flex; gap:14px; margin-bottom:18px;
+  }
+  .score-box{
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.15);
+    border-radius:14px; padding:10px 20px; text-align:center; min-width:120px;
+  }
+  .score-box .label{ font-size:.7rem; opacity:.7; letter-spacing:.1em; }
+  .score-box .value{
+    font-size:1.7rem; font-weight:bold; color:var(--gold);
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ===== スロット本体（窓枠） ===== */
+  .machine{
+    position:relative;
+    background:linear-gradient(145deg,#3a3a4d,#23232f);
+    border:6px solid var(--gold);
+    border-radius:24px;
+    padding:18px;
+    box-shadow:0 0 0 4px var(--gold-dark), 0 18px 40px rgba(0,0,0,.5);
+    /* ★ お手元の窓枠素材を使う場合：上の background を消して
+         background:url("frame.png") center/cover; などに差し替え可能 */
+  }
+  /* 3つのリールを横に並べる窓 */
+  .window{
+    display:flex; gap:10px;
+    background:#15151f; padding:10px; border-radius:14px;
+  }
+  /* 1つのリール（縦に絵柄が流れる列）。3マス分だけ見える窓 */
+  .reel{
+    position:relative;
+    width:92px;
+    height:calc(var(--cellH) * 3);   /* 3マス見える高さ */
+    overflow:hidden;
+    border-radius:10px;
+    background:var(--cell);
+  }
+  /* リールの中を流れる縦長の帯。ここを上下に動かして回す */
+  .strip{
+    position:absolute; top:0; left:0; width:100%;
+    will-change:transform;
+  }
+  /* 絵柄1マス */
+  .cell{
+    height:var(--cellH);
+    display:flex; align-items:center; justify-content:center;
+    font-size:3rem;
+    border-bottom:1px solid #eee;
+    user-select:none;
+  }
+  /* 中央ライン（見やすさの目印） */
+  .payline{
+    position:absolute; left:8px; right:8px;
+    top:50%; transform:translateY(-50%);
+    height:calc(var(--cellH));
+    border:3px solid rgba(244,196,48,.35);
+    border-radius:10px;
+    pointer-events:none;
+  }
+  /* アタリでマスを光らせる */
+  .cell.win{
+    animation:flash .5s ease-in-out 0s 6 alternate;
+    border-radius:8px;
+  }
+  @keyframes flash{
+    from{ background:transparent; }
+    to{ background:rgba(244,196,48,.65); box-shadow:0 0 18px rgba(244,196,48,.9) inset; }
+  }
+
+  /* ===== 操作部 ===== */
+  .controls{ margin-top:22px; display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .spin-btn{
+    background:linear-gradient(180deg,var(--gold),var(--gold-dark));
+    color:#3a2600; font-weight:bold; font-size:1.3rem; letter-spacing:.12em;
+    border:none; border-radius:999px; padding:16px 60px; cursor:pointer;
+    box-shadow:0 6px 0 #7c5a06, 0 10px 20px rgba(0,0,0,.4);
+    transition:transform .08s, box-shadow .08s;
+  }
+  .spin-btn:active{ transform:translateY(4px); box-shadow:0 2px 0 #7c5a06; }
+  .spin-btn:disabled{ filter:grayscale(.6) brightness(.8); cursor:not-allowed; }
+
+  .message{
+    min-height:1.6em; font-size:1.05rem; font-weight:bold;
+    text-align:center; color:var(--gold);
+    text-shadow:0 1px 4px rgba(0,0,0,.5);
+  }
+
+  /* 絵柄と配点の早見表 */
+  .paytable{
+    margin-top:26px; background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.12); border-radius:14px;
+    padding:14px 18px; font-size:.82rem; max-width:340px; width:100%;
+  }
+  .paytable h2{ font-size:.85rem; opacity:.75; margin-bottom:8px; letter-spacing:.08em; }
+  .paytable ul{ list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:6px 16px; }
+  .paytable li{ display:flex; justify-content:space-between; }
+  .paytable .pt{ color:var(--gold); font-weight:bold; }
+</style>
+</head>
+<body>
+
+  <h1>shosan <span>スロット</span></h1>
+  <p class="subtitle">Step 1：基本のスロット（横・斜めでそろえてポイントGET）</p>
+
+  <!-- スコア -->
+  <div class="scoreboard">
+    <div class="score-box">
+      <div class="label">TOTAL POINT</div>
+      <div class="value" id="totalPoint">0</div>
+    </div>
+    <div class="score-box">
+      <div class="label">SPINS</div>
+      <div class="value" id="spinCount">0</div>
+    </div>
+  </div>
+
+  <!-- スロット本体 -->
+  <div class="machine">
+    <div class="window" id="window">
+      <!-- リールは JavaScript で3本ぶん生成します -->
+    </div>
+    <div class="payline"></div>
+  </div>
+
+  <!-- 操作 -->
+  <div class="controls">
+    <button class="spin-btn" id="spinBtn">S P I N</button>
+    <div class="message" id="message">ボタンを押して回してね！</div>
+  </div>
+
+  <!-- 配点早見表 -->
+  <div class="paytable">
+    <h2>絵柄と配点（3つそろうと加算）</h2>
+    <ul id="paytableList"></ul>
+  </div>
+
+<script>
+/* ============================================================
+   設定エリア（ここを編集すれば中身を変えられます）
+   ============================================================ */
+
+// 絵柄の定義。weight=出やすさ（大きいほど出やすい）, point=そろったときの点
+// ★ shosan のイラストに差し替えるときは emoji を変える／後Stepで画像化します
+const SYMBOLS = [
+  { id:'star',   emoji:'⭐', point:300, weight:1 },  // レア・高得点
+  { id:'seven',  emoji:'7️⃣', point:200, weight:2 },
+  { id:'crown',  emoji:'👑', point:150, weight:3 },
+  { id:'gem',    emoji:'💎', point:100, weight:4 },
+  { id:'bell',   emoji:'🔔', point:60,  weight:6 },
+  { id:'cherry', emoji:'🍒', point:30,  weight:8 },
+];
+
+const REEL_COUNT = 3;   // リールの数（列）
+const ROW_COUNT  = 3;   // 見える行数
+
+/* ============================================================
+   ここから下は仕組み（基本はさわらなくてOK）
+   ============================================================ */
+
+const CELL_H = 92; // CSSの --cellH と合わせる
+let totalPoint = 0;
+let spinCount  = 0;
+let spinning   = false;
+
+// 出現確率の重みつき抽選用に、重みぶん並べたリストを作る
+const weightedPool = [];
+SYMBOLS.forEach(s => { for(let i=0;i<s.weight;i++) weightedPool.push(s); });
+const pickRandomSymbol = () => weightedPool[Math.floor(Math.random()*weightedPool.length)];
+const symbolById = id => SYMBOLS.find(s => s.id === id);
+
+// DOM参照
+const windowEl   = document.getElementById('window');
+const spinBtn    = document.getElementById('spinBtn');
+const messageEl  = document.getElementById('message');
+const totalEl    = document.getElementById('totalPoint');
+const spinEl     = document.getElementById('spinCount');
+
+// リール本体を保持
+const reels = [];
+
+// 配点早見表を描画
+document.getElementById('paytableList').innerHTML = SYMBOLS
+  .map(s => `<li><span>${s.emoji} ${s.id}</span><span class="pt">${s.point}pt</span></li>`)
+  .join('');
+
+// リールDOMを生成
+function buildReels(){
+  for(let r=0; r<REEL_COUNT; r++){
+    const reel = document.createElement('div');
+    reel.className = 'reel';
+    const strip = document.createElement('div');
+    strip.className = 'strip';
+    reel.appendChild(strip);
+    windowEl.appendChild(reel);
+    // 初期表示としてランダムに3マスぶん入れておく
+    const initial = [pickRandomSymbol(), pickRandomSymbol(), pickRandomSymbol()];
+    renderStrip(strip, initial, 0);
+    reels.push({ strip, result: initial.map(s=>s.id) });
+  }
+}
+
+// 帯（strip）に絵柄セルを並べる。offsetは表示開始位置（マス数）
+function renderStrip(strip, symbolList, offset){
+  strip.innerHTML = symbolList
+    .map(s => `<div class="cell">${s.emoji}</div>`)
+    .join('');
+  strip.style.transition = 'none';
+  strip.style.transform = `translateY(${-offset*CELL_H}px)`;
+}
+
+// 1本のリールを回して、指定の3シンボルで止める
+function spinReel(reel, finalThree, durationMs){
+  return new Promise(resolve => {
+    const strip = reel.strip;
+    // 流れる演出用に、たくさんのランダム絵柄＋最後に結果3つを並べる
+    const filler = [];
+    const FILL = 24; // 流れる枚数（多いほど長く回る感じ）
+    for(let i=0;i<FILL;i++) filler.push(pickRandomSymbol());
+    const fullList = [...filler, ...finalThree]; // 末尾3つが最終結果
+
+    // いったん先頭表示にリセット（transitionなし）
+    renderStrip(strip, fullList, 0);
+    // ブラウザに描画させてから動かす（reflow）
+    void strip.offsetHeight;
+
+    // 末尾3つが見える位置まで一気にスクロール
+    const finalOffset = fullList.length - ROW_COUNT; // この位置を先頭に表示
+    strip.style.transition = `transform ${durationMs}ms cubic-bezier(.15,.85,.25,1)`;
+    strip.style.transform = `translateY(${-finalOffset*CELL_H}px)`;
+
+    reel.result = finalThree.map(s=>s.id);
+
+    const onEnd = () => { strip.removeEventListener('transitionend', onEnd); resolve(); };
+    strip.addEventListener('transitionend', onEnd);
+  });
+}
+
+// スピン実行
+async function spin(){
+  if(spinning) return;
+  spinning = true;
+  spinBtn.disabled = true;
+  messageEl.textContent = '回転中…';
+  clearWinHighlight();
+
+  spinCount++;
+  spinEl.textContent = spinCount;
+
+  // 各リールの最終結果（3マスぶん）を先に決める
+  const reelResults = reels.map(() =>
+    [pickRandomSymbol(), pickRandomSymbol(), pickRandomSymbol()]
+  );
+
+  // リールを順番に止める（左→右）と本物っぽい
+  await Promise.all(reels.map((reel, i) =>
+    spinReel(reel, reelResults[i], 1400 + i*450)
+  ));
+
+  evaluate();
+
+  spinning = false;
+  spinBtn.disabled = false;
+}
+
+// そろい判定（横3列＋斜め2本）
+function evaluate(){
+  // grid[row][col] にシンボルidを展開
+  const grid = [];
+  for(let row=0; row<ROW_COUNT; row++){
+    grid[row] = reels.map(reel => reel.result[row]);
+  }
+
+  // 判定するライン（行番号 or 斜めを座標で表現）
+  const lines = [
+    { name:'上段',   cells:[[0,0],[0,1],[0,2]] },
+    { name:'中段',   cells:[[1,0],[1,1],[1,2]] },
+    { name:'下段',   cells:[[2,0],[2,1],[2,2]] },
+    { name:'斜め＼', cells:[[0,0],[1,1],[2,2]] },
+    { name:'斜め／', cells:[[2,0],[1,1],[0,2]] },
+  ];
+
+  let gained = 0;
+  const winningCells = [];
+  const hitNames = [];
+
+  lines.forEach(line => {
+    const ids = line.cells.map(([r,c]) => grid[r][c]);
+    if(ids[0] === ids[1] && ids[1] === ids[2]){
+      const sym = symbolById(ids[0]);
+      gained += sym.point;
+      hitNames.push(`${line.name}:${sym.emoji}`);
+      winningCells.push(...line.cells);
+    }
+  });
+
+  if(gained > 0){
+    totalPoint += gained;
+    totalEl.textContent = totalPoint;
+    messageEl.textContent = `🎉 ${hitNames.join('  ')}  ＋${gained}pt！`;
+    highlightWin(winningCells);
+  } else {
+    messageEl.textContent = 'ざんねん！もう一回！';
+  }
+}
+
+// アタリのマスを光らせる
+function highlightWin(cells){
+  cells.forEach(([row, col]) => {
+    // 各リールは末尾3マスが表示中。表示中の row 番目のセルを探す
+    const strip = reels[col].strip;
+    const allCells = strip.querySelectorAll('.cell');
+    const startIndex = allCells.length - ROW_COUNT; // 表示開始位置
+    const target = allCells[startIndex + row];
+    if(target) target.classList.add('win');
+  });
+}
+function clearWinHighlight(){
+  document.querySelectorAll('.cell.win').forEach(c => c.classList.remove('win'));
+}
+
+// 初期化
+buildReels();
+spinBtn.addEventListener('click', spin);
+</script>
+</body>
+</html>
