@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TrainerHub / UnitC — シフト管理</title>
+<!--
+TrainerHub / UnitC — ジムトレーナー稼働ログ / シフト管理
+- メンバー選択（7名）
+- 2026年 毎月の期間
+- レベルは全員 Lv.1 スタート
+- 背景にCSSで描いたポケモン風シルエット装飾（著作権キャラ画像は不使用）
+- データは /api/members 経由で Vercel Edge Config に保存（メンバーごとに共有）
+-->
+<style>
+  :root {
+    --pkb-red:#ee1515; --pkb-red-dk:#c20d0d; --pkb-ink:#1d2733; --pkb-slate:#3a4a5c;
+    --pkb-paper:#eef3fa; --pkb-card:#ffffff; --pkb-line:#d6deea;
+    --pkb-gold:#ffcb05; --pkb-gold-dk:#d9a900; --pkb-blue:#2a75bb; --pkb-blue-dk:#1d5a93;
+    --pkb-green:#4caf50; --pkb-muted:#6b7a8d; --pkb-pos:#2e9b57; --pkb-neg:#d94f4f;
+    --shadow-sm:0 1px 2px rgba(29,39,51,.08); --shadow-md:0 4px 16px rgba(29,39,51,.10);
+    --shadow-lg:0 12px 40px rgba(29,39,51,.16);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { background:var(--pkb-paper); }
+  #root {
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Meiryo",system-ui,sans-serif;
+    color:var(--pkb-ink); min-height:100vh; line-height:1.55; -webkit-font-smoothing:antialiased;
+    position:relative; overflow-x:hidden;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(255,203,5,.10), transparent 30%),
+      radial-gradient(circle at 88% 4%, rgba(42,117,187,.08), transparent 28%),
+      var(--pkb-paper);
+  }
+
+  /* ---------- Decorative Pokémon-style silhouettes (CSS-drawn, not copyrighted art) ---------- */
+  .bg-deco { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+  .bg-deco .mon { position:absolute; opacity:.16; }
+  .bg-deco .mon.float { animation:bob 7s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-14px) } }
+  @media (prefers-reduced-motion: reduce){ .bg-deco .mon.float{ animation:none } }
+
+  .wrap { max-width:920px; margin:0 auto; padding:0 16px 90px; position:relative; z-index:1; }
+
+  /* ---------- Top band ---------- */
+  .topband { background:linear-gradient(180deg,var(--pkb-red),var(--pkb-red-dk)); color:#fff; border-bottom:4px solid var(--pkb-ink); position:relative; z-index:1; }
+  .topband-inner { max-width:920px; margin:0 auto; padding:16px 16px 18px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .miniball { width:36px;height:36px;border-radius:50%;position:relative;flex:none;border:3px solid var(--pkb-ink);box-shadow:var(--shadow-sm);background:#fff; }
+  .miniball::before{ content:"";position:absolute;inset:0 0 50% 0;background:var(--pkb-red);border-radius:50% 50% 0 0; }
+  .miniball::after{ content:"";position:absolute;left:50%;top:50%;width:11px;height:11px;transform:translate(-50%,-50%);background:#fff;border:3px solid var(--pkb-ink);border-radius:50%;z-index:2; }
+  .brand { font-weight:800; font-size:1.3rem; letter-spacing:.03em; }
+  .brand small { display:block; font-weight:700; font-size:.7rem; opacity:.9; letter-spacing:.18em; }
+  .topband .spacer { flex:1; }
+  .unit-tag { background:rgba(0,0,0,.2); border:1px solid rgba(255,255,255,.3); padding:5px 12px; border-radius:999px; font-size:.78rem; font-weight:800; letter-spacing:.05em; }
+  .refreshbtn { background:rgba(0,0,0,.2); border:1px solid rgba(255,255,255,.3); color:#fff; padding:5px 12px; border-radius:999px; font-size:.78rem; font-weight:800; letter-spacing:.03em; cursor:pointer; font-family:inherit; }
+  .refreshbtn:hover { background:rgba(0,0,0,.32); }
+  .refreshbtn:disabled { opacity:.6; cursor:default; }
+
+  .netbanner { margin-top:14px; background:#fff4e0; border:1px solid #f0c060; color:#7a5a10; border-radius:12px; padding:10px 14px; font-size:.8rem; font-weight:700; }
+
+  /* ---------- Member picker ---------- */
+  .picker { margin-top:18px; background:var(--pkb-card); border:1px solid var(--pkb-line); border-radius:18px; box-shadow:var(--shadow-md); padding:16px 18px; }
+  .picker .ttl { font-size:.74rem; font-weight:800; letter-spacing:.1em; color:var(--pkb-muted); margin-bottom:10px; text-transform:uppercase; }
+  .member-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:8px; }
+  .member {
+    display:flex; align-items:center; gap:8px; padding:8px 10px; border:2px solid var(--pkb-line);
+    border-radius:12px; cursor:pointer; background:var(--pkb-paper); transition:all .14s; font-weight:700; font-size:.88rem;
+  }
+  .member:hover { border-color:var(--pkb-blue); }
+  .member.on { border-color:var(--pkb-red); background:rgba(238,21,21,.06); box-shadow:var(--shadow-sm); }
+  .member .face { width:30px;height:30px;border-radius:9px;flex:none;display:grid;place-items:center;font-size:1.05rem;border:2px solid var(--pkb-ink); }
+
+  /* ---------- Trainer card ---------- */
+  .trainer { margin-top:18px; background:var(--pkb-card); border:1px solid var(--pkb-line); border-radius:18px; box-shadow:var(--shadow-md); padding:20px 22px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  .avatar { width:64px;height:64px;border-radius:16px;flex:none;display:grid;place-items:center;font-size:2rem;border:3px solid var(--pkb-ink);box-shadow:var(--shadow-sm); }
+  .trainer h1 { font-size:1.5rem; letter-spacing:.02em; }
+  .trainer .role { color:var(--pkb-muted); font-size:.85rem; font-weight:600; }
+  .badges { display:flex; gap:6px; margin-top:6px; }
+  .badge-dot { width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--pkb-blue),var(--pkb-blue-dk));border:2px solid #fff;box-shadow:0 0 0 1px var(--pkb-line); }
+  .badge-dot.dim { background:#cfd8e3; }
+  .level-pill { margin-left:auto; text-align:center; background:var(--pkb-ink); color:#fff; border-radius:14px; padding:8px 16px; }
+  .level-pill b { font-size:1.4rem; display:block; line-height:1; }
+  .level-pill span { font-size:.65rem; letter-spacing:.16em; opacity:.8; }
+  .xpbar { width:100%; margin-top:4px; }
+  .xpbar .track { height:6px; background:#e4eaf2; border:1px solid var(--pkb-line); border-radius:999px; overflow:hidden; }
+  .xpbar .fillx { height:100%; background:linear-gradient(90deg,var(--pkb-gold),var(--pkb-gold-dk)); border-radius:999px; transition:width .5s; }
+  .xpbar .cap { font-size:.66rem; color:var(--pkb-muted); margin-top:3px; font-weight:700; }
+
+  /* ---------- Period (months) ---------- */
+  .periodrow { display:flex; gap:6px; margin:20px 0 6px; flex-wrap:wrap; align-items:center; }
+  .periodrow .label { font-size:.74rem; color:var(--pkb-muted); font-weight:800; margin-right:4px; letter-spacing:.06em; }
+  .seg { border:2px solid var(--pkb-line); background:var(--pkb-card); border-radius:10px; padding:5px 11px; font-size:.8rem; font-weight:800; cursor:pointer; color:var(--pkb-slate); transition:all .14s; }
+  .seg:hover { border-color:var(--pkb-blue); }
+  .seg.on { background:var(--pkb-blue); border-color:var(--pkb-blue-dk); color:#fff; box-shadow:var(--shadow-sm); }
+
+  .section { margin-top:24px; }
+  .section-head { display:flex; align-items:center; gap:10px; margin-bottom:13px; }
+  .section-head h2 { font-size:1.06rem; letter-spacing:.02em; }
+  .section-head .chip { font-size:.66rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--pkb-red); background:rgba(238,21,21,.08); padding:3px 9px; border-radius:6px; border:1px solid rgba(238,21,21,.2); }
+
+  .hpcard { background:var(--pkb-card); border:1px solid var(--pkb-line); border-radius:18px; box-shadow:var(--shadow-md); padding:20px 22px; }
+  .hp-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:18px; }
+  .stat { text-align:center; padding:12px 8px; border-radius:14px; background:var(--pkb-paper); border:1px solid var(--pkb-line); }
+  .stat .num { font-size:1.7rem; font-weight:800; line-height:1; }
+  .stat .num small { font-size:.9rem; }
+  .stat .lab { font-size:.7rem; color:var(--pkb-muted); font-weight:700; letter-spacing:.04em; margin-top:6px; }
+  .stat.diff .num.pos { color:var(--pkb-pos); } .stat.diff .num.neg { color:var(--pkb-neg); }
+  .hpbar-top { display:flex; justify-content:space-between; font-size:.74rem; font-weight:700; color:var(--pkb-slate); margin-bottom:5px; }
+  .hpbar { height:16px; border-radius:999px; background:#e4eaf2; overflow:hidden; border:1px solid var(--pkb-line); }
+  .hpbar .fill { height:100%; border-radius:999px; transition:width .5s; background:linear-gradient(90deg,var(--pkb-green),#7bd17e); }
+  .hpbar .fill.over { background:linear-gradient(90deg,#ffb347,var(--pkb-red)); }
+  .hp-note { font-size:.78rem; margin-top:10px; font-weight:700; }
+  .hp-note.pos { color:var(--pkb-pos); } .hp-note.neg { color:var(--pkb-neg); }
+
+  .moves { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  .move { background:var(--pkb-card); border:1px solid var(--pkb-line); border-radius:14px; padding:14px; box-shadow:var(--shadow-sm); position:relative; overflow:hidden; transition:transform .12s,box-shadow .12s; }
+  .move:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); }
+  .move .type { display:inline-block; font-size:.62rem; font-weight:800; letter-spacing:.08em; color:#fff; padding:2px 8px; border-radius:6px; margin-bottom:8px; }
+  .move h3 { font-size:.95rem; line-height:1.3; }
+  .move .desc { font-size:.76rem; color:var(--pkb-muted); margin-top:2px; }
+  .move .pp { display:flex; align-items:baseline; gap:4px; margin-top:10px; }
+  .move .pp b { font-size:1.35rem; font-weight:800; } .move .pp span { font-size:.7rem; color:var(--pkb-muted); font-weight:700; }
+  .move .editbtns { position:absolute; top:10px; right:10px; display:flex; gap:4px; opacity:0; transition:opacity .12s; }
+  .move:hover .editbtns { opacity:1; }
+  .iconbtn { width:24px;height:24px;border-radius:7px;border:1px solid var(--pkb-line);background:var(--pkb-paper);cursor:pointer;font-size:.8rem;line-height:1;display:grid;place-items:center;color:var(--pkb-slate); }
+  .iconbtn:hover { background:#fff; border-color:var(--pkb-blue); }
+  .t-common{background:#9aa4ad} .move.t-common{border-left:4px solid #9aa4ad}
+  .t-ops{background:#6890f0} .move.t-ops{border-left:4px solid #6890f0}
+  .t-unit{background:#a040a0} .move.t-unit{border-left:4px solid #a040a0}
+  .t-video{background:#f08030} .move.t-video{border-left:4px solid #f08030}
+  .t-shoot{background:#f85888} .move.t-shoot{border-left:4px solid #f85888}
+  .t-other{background:#78c850} .move.t-other{border-left:4px solid #78c850}
+  .t-lead{background:#f8d030} .move.t-lead{border-left:4px solid #f8d030}
+  .addmove { border:2px dashed var(--pkb-line); border-radius:14px; background:transparent; display:grid; place-items:center; cursor:pointer; min-height:118px; color:var(--pkb-muted); font-weight:800; font-size:.85rem; transition:all .15s; }
+  .addmove:hover { border-color:var(--pkb-blue); color:var(--pkb-blue); background:rgba(42,117,187,.04); }
+  .totalrow { display:flex; justify-content:flex-end; align-items:center; gap:8px; margin-top:14px; font-weight:700; }
+  .totalrow b { font-size:1.25rem; }
+
+  .applycard { background:var(--pkb-card); border:1px solid var(--pkb-line); border-radius:18px; box-shadow:var(--shadow-md); padding:20px 22px; }
+  .applycard p.sub { font-size:.8rem; color:var(--pkb-muted); margin-bottom:16px; }
+  .applygrid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .applybox { border:1px solid var(--pkb-line); border-radius:14px; padding:14px; background:var(--pkb-paper); }
+  .applybox h4 { font-size:.9rem; } .applybox .cap { font-size:.72rem; color:var(--pkb-muted); font-weight:600; margin-bottom:10px; }
+  .hinput { display:flex; align-items:center; gap:6px; margin-bottom:10px; }
+  .hinput input { flex:1; font-size:1.1rem; font-weight:700; padding:8px 10px; border:2px solid var(--pkb-line); border-radius:10px; text-align:right; font-family:inherit; color:var(--pkb-ink); background:#fff; }
+  .hinput input:focus { outline:none; border-color:var(--pkb-blue); }
+  .hinput span { font-weight:700; color:var(--pkb-muted); }
+  .btn { width:100%; border:none; border-radius:10px; padding:10px; font-weight:800; font-size:.85rem; cursor:pointer; font-family:inherit; transition:transform .1s,filter .1s; letter-spacing:.03em; }
+  .btn:active { transform:scale(.98); }
+  .btn:disabled { opacity:.6; cursor:default; }
+  .btn-red { background:var(--pkb-red); color:#fff; box-shadow:var(--shadow-sm); } .btn-red:hover { filter:brightness(1.06); }
+  .btn-saved { background:var(--pkb-green); color:#fff; }
+  .applytotal { text-align:right; margin-top:14px; font-weight:800; font-size:1rem; } .applytotal b { color:var(--pkb-red); }
+
+  .consult { background:linear-gradient(180deg,#fff,#fdf2f4); border:1px solid #f4c9d2; border-radius:18px; box-shadow:var(--shadow-md); padding:20px 22px; }
+  .consult .opts { display:flex; flex-direction:column; gap:8px; margin:14px 0; }
+  .opt { display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--pkb-line); border-radius:11px; cursor:pointer; background:#fff; transition:all .12s; font-size:.86rem; font-weight:600; }
+  .opt:hover { border-color:var(--pkb-red); } .opt.on { border-color:var(--pkb-red); background:rgba(238,21,21,.05); }
+  .opt .box { width:18px;height:18px;border:2px solid var(--pkb-line);border-radius:5px;flex:none;display:grid;place-items:center; }
+  .opt.on .box { background:var(--pkb-red); border-color:var(--pkb-red); color:#fff; }
+  textarea.consult-msg { width:100%; border:2px solid var(--pkb-line); border-radius:11px; padding:11px; font-family:inherit; font-size:.88rem; resize:vertical; min-height:70px; color:var(--pkb-ink); }
+  textarea.consult-msg:focus { outline:none; border-color:var(--pkb-red); }
+
+  .overlay { position:fixed; inset:0; background:rgba(15,23,33,.55); display:grid; place-items:center; z-index:50; padding:16px; }
+  .modal { background:#fff; border-radius:18px; width:100%; max-width:380px; box-shadow:var(--shadow-lg); overflow:hidden; }
+  .modal-h { background:var(--pkb-ink); color:#fff; padding:14px 18px; font-weight:800; font-size:.95rem; }
+  .modal-b { padding:18px; display:flex; flex-direction:column; gap:12px; }
+  .field label { font-size:.74rem; font-weight:700; color:var(--pkb-slate); display:block; margin-bottom:5px; }
+  .field input,.field select { width:100%; padding:9px 11px; border:2px solid var(--pkb-line); border-radius:10px; font-family:inherit; font-size:.9rem; color:var(--pkb-ink); background:#fff; }
+  .field input:focus,.field select:focus { outline:none; border-color:var(--pkb-blue); }
+  .modal-f { display:flex; gap:8px; padding:0 18px 18px; } .modal-f .btn { width:auto; flex:1; }
+  .btn-ghost { background:var(--pkb-paper); color:var(--pkb-slate); border:1px solid var(--pkb-line); }
+  .btn-blue { background:var(--pkb-blue); color:#fff; }
+
+  .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); background:var(--pkb-ink); color:#fff; padding:11px 20px; border-radius:999px; font-weight:700; font-size:.85rem; box-shadow:var(--shadow-lg); z-index:60; opacity:0; transition:all .3s; pointer-events:none; display:flex; align-items:center; gap:8px; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .savebar { position:sticky; bottom:0; margin-top:30px; padding:14px 0; background:linear-gradient(180deg,transparent,var(--pkb-paper) 40%); display:flex; gap:10px; justify-content:flex-end; z-index:10; }
+  .savebar .btn { width:auto; padding:11px 26px; }
+  .saved-note { font-size:.72rem; color:var(--pkb-muted); align-self:center; margin-right:auto; }
+
+  @media (max-width:640px){
+    .hp-stats{ grid-template-columns:1fr 1fr 1fr } .moves{ grid-template-columns:1fr } .applygrid{ grid-template-columns:1fr }
+    .trainer h1{ font-size:1.3rem } .level-pill{ margin-left:0 }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- Decorative CSS Pokémon-style silhouettes -->
+<div class="bg-deco" aria-hidden="true">
+  <!-- Pikachu-style: round body, zigzag ears with black tips, cheeks, lightning tail -->
+  <svg class="mon float" style="top:5%; left:-24px; width:200px" viewBox="0 0 120 120">
+    <path d="M34 40 L20 4 L48 30 Z" fill="#f8d030" stroke="#5a4a00" stroke-width="2"/>
+    <path d="M86 40 L100 4 L72 30 Z" fill="#f8d030" stroke="#5a4a00" stroke-width="2"/>
+    <path d="M24 14 L20 4 L34 24 Z" fill="#3a2f00"/>
+    <path d="M96 14 L100 4 L86 24 Z" fill="#3a2f00"/>
+    <ellipse cx="60" cy="66" rx="36" ry="38" fill="#f8d030" stroke="#5a4a00" stroke-width="2"/>
+    <circle cx="36" cy="72" r="8" fill="#e23b3b"/>
+    <circle cx="84" cy="72" r="8" fill="#e23b3b"/>
+    <circle cx="48" cy="58" r="4.5" fill="#1d1d1d"/><circle cx="72" cy="58" r="4.5" fill="#1d1d1d"/>
+    <circle cx="49.5" cy="56.5" r="1.4" fill="#fff"/><circle cx="73.5" cy="56.5" r="1.4" fill="#fff"/>
+    <path d="M57 66 q3 3 6 0" fill="none" stroke="#1d1d1d" stroke-width="2" stroke-linecap="round"/>
+    <path d="M92 78 L118 66 L104 82 L120 80 L98 104 L104 88 L90 92 Z" fill="#f8d030" stroke="#5a4a00" stroke-width="2"/>
+  </svg>
+
+  <!-- Charizard-style: orange dragon, big wings, horns, flame tail -->
+  <svg class="mon float" style="top:30%; right:-44px; width:250px; animation-delay:1.4s" viewBox="0 0 160 130">
+    <path d="M96 44 q46 -30 60 4 q-30 -8 -44 14 Z" fill="#3aa0a0" stroke="#1d5a5a" stroke-width="2"/>
+    <path d="M112 60 q44 0 46 34 q-26 -18 -50 -4 Z" fill="#3aa0a0" stroke="#1d5a5a" stroke-width="2"/>
+    <ellipse cx="70" cy="70" rx="34" ry="40" fill="#f28c28" stroke="#a3560f" stroke-width="2"/>
+    <ellipse cx="70" cy="82" rx="20" ry="24" fill="#f5d199"/>
+    <ellipse cx="58" cy="34" rx="20" ry="17" fill="#f28c28" stroke="#a3560f" stroke-width="2"/>
+    <path d="M64 22 q4 -16 16 -16 q-8 8 -6 18 Z" fill="#f28c28" stroke="#a3560f" stroke-width="2"/>
+    <path d="M52 22 q0 -12 8 -14 q-4 8 -1 16 Z" fill="#f28c28" stroke="#a3560f" stroke-width="2"/>
+    <circle cx="50" cy="32" r="3.2" fill="#1d1d1d"/>
+    <ellipse cx="56" cy="112" rx="11" ry="9" fill="#f28c28" stroke="#a3560f" stroke-width="2"/>
+    <ellipse cx="84" cy="112" rx="11" ry="9" fill="#f28c28" stroke="#a3560f" stroke-width="2"/>
+    <path d="M100 96 q28 4 30 -18 q14 20 -2 40 q-16 8 -28 -6 Z" fill="#f28c28" stroke="#a3560f" stroke-width="2"/>
+    <path d="M126 66 q14 12 6 30 q-4 -6 -12 -6 q6 -10 6 -24 Z" fill="#ff7a1a"/>
+    <path d="M126 70 q8 10 3 22 q-3 -4 -8 -4 q4 -8 5 -18 Z" fill="#ffd23f"/>
+  </svg>
+
+  <!-- Mewtwo-style: pale purple, tube from neck, long thick tail -->
+  <svg class="mon float" style="bottom:6%; left:-26px; width:210px; animation-delay:.7s" viewBox="0 0 120 150">
+    <path d="M78 96 q34 6 30 44 q-4 20 -20 22 q10 -16 -2 -30 q-12 -14 -20 -24 Z" fill="#c9a0d0" stroke="#7a4a86" stroke-width="2"/>
+    <path d="M44 60 q-6 40 6 60 q10 12 20 0 q12 -20 6 -60 Z" fill="#e7d3ec" stroke="#7a4a86" stroke-width="2"/>
+    <path d="M52 46 q-8 8 -6 18 l8 0 q-2 -10 6 -16 Z" fill="#c9a0d0" stroke="#7a4a86" stroke-width="2"/>
+    <ellipse cx="60" cy="34" rx="18" ry="20" fill="#e7d3ec" stroke="#7a4a86" stroke-width="2"/>
+    <path d="M60 12 q10 -8 16 2 q-8 -2 -14 6 Z" fill="#c9a0d0" stroke="#7a4a86" stroke-width="2"/>
+    <circle cx="53" cy="32" r="3.4" fill="#5a2a6a"/><circle cx="67" cy="32" r="3.4" fill="#5a2a6a"/>
+    <path d="M42 66 q-14 8 -12 26" fill="none" stroke="#7a4a86" stroke-width="7" stroke-linecap="round"/>
+    <path d="M78 66 q14 8 12 26" fill="none" stroke="#7a4a86" stroke-width="7" stroke-linecap="round"/>
+  </svg>
+
+  <!-- Pokéball float -->
+  <svg class="mon float" style="top:12%; right:16%; width:96px; animation-delay:2.2s" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="46" fill="#fff"/>
+    <path d="M4 50 a46 46 0 0 1 92 0 Z" fill="#ee1515"/>
+    <circle cx="50" cy="50" r="46" fill="none" stroke="#1d2733" stroke-width="6"/>
+    <rect x="4" y="46" width="92" height="8" fill="#1d2733"/>
+    <circle cx="50" cy="50" r="13" fill="#fff" stroke="#1d2733" stroke-width="6"/>
+  </svg>
+
+  <!-- Eevee-style: brown body, big ears, fluffy cream neck ruff, bushy tail -->
+  <svg class="mon float" style="bottom:8%; right:6%; width:190px; animation-delay:1.9s" viewBox="0 0 130 120">
+    <path d="M34 34 L22 2 L52 24 Z" fill="#a9743f" stroke="#6e461f" stroke-width="2"/>
+    <path d="M84 34 L96 2 L66 24 Z" fill="#a9743f" stroke="#6e461f" stroke-width="2"/>
+    <path d="M32 22 L26 6 L44 22 Z" fill="#7a4f26"/>
+    <path d="M86 22 L92 6 L74 22 Z" fill="#7a4f26"/>
+    <path d="M96 74 q34 -8 30 -40 q16 22 2 46 q-14 18 -34 8 Z" fill="#f2e2c4" stroke="#c9b088" stroke-width="2"/>
+    <ellipse cx="60" cy="72" rx="34" ry="34" fill="#a9743f" stroke="#6e461f" stroke-width="2"/>
+    <path d="M32 66 q8 -12 28 -12 q20 0 28 12 q-6 10 -14 6 q-6 8 -14 0 q-8 4 -14 -6 Z" fill="#f2e2c4" stroke="#c9b088" stroke-width="2"/>
+    <ellipse cx="60" cy="46" rx="24" ry="21" fill="#a9743f" stroke="#6e461f" stroke-width="2"/>
+    <circle cx="50" cy="46" r="4.2" fill="#1d1d1d"/><circle cx="70" cy="46" r="4.2" fill="#1d1d1d"/>
+    <circle cx="51.3" cy="44.7" r="1.3" fill="#fff"/><circle cx="71.3" cy="44.7" r="1.3" fill="#fff"/>
+    <path d="M60 52 l-3 4 h6 Z" fill="#5a3a1c"/>
+    <ellipse cx="48" cy="104" rx="10" ry="7" fill="#a9743f" stroke="#6e461f" stroke-width="2"/>
+    <ellipse cx="72" cy="104" rx="10" ry="7" fill="#a9743f" stroke="#6e461f" stroke-width="2"/>
+  </svg>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const UNIT = "UnitC";
+  const SELECTED_KEY = "trainerhub:unitc:selected-device-pref";
+
+  const TYPES = {
+    common:{label:"ノーマル",cls:"t-common"}, ops:{label:"みず",cls:"t-ops"},
+    unit:{label:"エスパー",cls:"t-unit"}, video:{label:"ほのお",cls:"t-video"},
+    shoot:{label:"フェアリー",cls:"t-shoot"}, other:{label:"くさ",cls:"t-other"},
+    lead:{label:"でんき",cls:"t-lead"},
+  };
+  const TYPE_KEYS = Object.keys(TYPES);
+
+  // 7 members. face = emoji avatar, color = avatar bg
+  const MEMBERS = [
+    { id:"hiko",    name:"ひこ",     face:"⚡", color:"#f8d030" },
+    { id:"rinrin",  name:"りんりん", face:"🔥", color:"#f08030" },
+    { id:"sakutan", name:"さくたん", face:"🌸", color:"#f85888" },
+    { id:"tsukky",  name:"つっきー", face:"🌙", color:"#6890f0" },
+    { id:"hartin",  name:"はるてぃん", face:"🍃", color:"#78c850" },
+    { id:"yamasan", name:"やまさん", face:"⛰️", color:"#b8a038" },
+    { id:"sugii",   name:"すぎぃ",   face:"💧", color:"#98d8d8" },
+  ];
+
+  // 2026 monthly periods
+  const MONTHS = Array.from({length:12}, (_,i)=>{
+    const m = i+1;
+    return { id:`2026-${String(m).padStart(2,"0")}`, label:`2026年${m}月`, recommended:104 };
+  });
+  const DEFAULT_PERIOD = MONTHS[6].id; // 7月
+
+  const CONSULT_REASONS = [
+    "タスクの重さをULに相談したい",
+    "シフトを削りたい",
+    "アカウントを増やしたい（工数を増やしたい）",
+    "プライベート・学業の都合でタスクを減らしたい",
+  ];
+
+  function uid(){ return "m"+Math.random().toString(36).slice(2,9); }
+  function emptyPeriod(){
+    return { moves:[], shift:{first:0,second:0,firstSaved:false,secondSaved:false}, consult:{reasons:[],message:""} };
+  }
+  // each member starts at Lv.1 with a starter moveset (used only if the server has no data yet)
+  function newMember(){
+    const p = emptyPeriod();
+    p.moves = [
+      { id:uid(), type:"common", name:"ジム会議に参加", desc:"共通 / 定例ミーティング", hours:8 },
+      { id:uid(), type:"unit",   name:"UnitC 所属", desc:"ユニット活動", hours:10 },
+    ];
+    return { level:1, period:DEFAULT_PERIOD, data:{ [DEFAULT_PERIOD]: p } };
+  }
+
+  let state = null;        // { selected, members:{ id: memberState } }
+  let saving = false;
+  let refreshing = false;
+  let lastNetworkError = false;
+
+  // ---- server sync ----
+  async function fetchMembers(){
+    const r = await fetch("/api/members", { cache:"no-store" });
+    if(!r.ok) throw new Error("fetch failed: "+r.status);
+    const j = await r.json();
+    return j.members || {};
+  }
+  async function pushMember(memberId, data){
+    const r = await fetch("/api/members", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ memberId, data }),
+    });
+    if(!r.ok) throw new Error("save failed: "+r.status);
+  }
+
+  async function load(){
+    const members = {};
+    MEMBERS.forEach(m=> members[m.id] = newMember());
+    try {
+      const fromServer = await fetchMembers();
+      MEMBERS.forEach(m=>{ if(fromServer[m.id]) members[m.id] = fromServer[m.id]; });
+      lastNetworkError = false;
+    } catch(e){
+      lastNetworkError = true;
+    }
+    let selected = null;
+    try { selected = localStorage.getItem(SELECTED_KEY); } catch(e){}
+    if(!selected || !members[selected]) selected = MEMBERS[0].id;
+    return { selected, members };
+  }
+
+  const $ = (s,el)=> (el||document).querySelector(s);
+  function meS(){ return state.members[state.selected]; }
+  function meInfo(){ return MEMBERS.find(m=>m.id===state.selected); }
+  function curPeriodId(){ return meS().period; }
+  function ensurePeriod(pid){
+    if(!meS().data[pid]) meS().data[pid]=emptyPeriod();
+    return meS().data[pid];
+  }
+  function cur(){ return ensurePeriod(curPeriodId()); }
+  function recommended(){ return sumMoves(); }
+  function periodMeta(){ return MONTHS.find(p=>p.id===curPeriodId()); }
+  function sumMoves(){ return cur().moves.reduce((a,m)=>a+(+m.hours||0),0); }
+  function sumShift(){ const s=cur().shift; return (+s.first||0)+(+s.second||0); }
+  function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+  // member level = number of months that have any saved shift application (simple, starts at 1)
+  function memberLevel(id){
+    const m = state.members[id];
+    let lvl = 1;
+    Object.values(m.data||{}).forEach(p=>{
+      if(p.shift && (p.shift.firstSaved || p.shift.secondSaved)) lvl++;
+    });
+    return lvl;
+  }
+
+  function render(){
+    const root = $("#root");
+    const info = meInfo();
+    const meta = periodMeta();
+    const recommendedH = recommended();
+    const moveTotal = sumMoves();
+    const applied = sumShift();
+    const diff = applied - recommendedH;
+    const pct = recommendedH>0 ? Math.min(100, Math.round(applied/recommendedH*100)) : 0;
+    const over = applied>recommendedH;
+    const lvl = memberLevel(state.selected);
+    const savedHalves = (cur().shift.firstSaved?1:0)+(cur().shift.secondSaved?1:0);
+    const xpPct = savedHalves/2*100;
+
+    root.innerHTML = `
+      <div class="topband">
+        <div class="topband-inner">
+          <div class="miniball"></div>
+          <div class="brand">TrainerHub<small>ジムトレーナー シフト管理（UnitC 全員共有）</small></div>
+          <div class="spacer"></div>
+          <button class="refreshbtn" data-refresh="1" ${refreshing?"disabled":""}>${refreshing?"更新中…":"🔄 最新を取得"}</button>
+          <div class="unit-tag">🏅 ${UNIT}</div>
+        </div>
+      </div>
+
+      <div class="wrap">
+        ${lastNetworkError ? `<div class="netbanner">⚠ サーバーに接続できませんでした。表示中のデータは古い可能性があります。「🔄 最新を取得」でやり直してください。</div>` : ""}
+
+        <!-- Member picker -->
+        <div class="picker">
+          <div class="ttl">トレーナーを選ぶ</div>
+          <div class="member-grid">
+            ${MEMBERS.map(m=>`
+              <div class="member ${m.id===state.selected?'on':''}" data-member="${m.id}">
+                <span class="face" style="background:${m.color}">${m.face}</span>
+                <span>${esc(m.name)}<br><small style="font-weight:700;color:var(--pkb-muted);font-size:.66rem">Lv.${memberLevel(m.id)}</small></span>
+              </div>`).join("")}
+          </div>
+        </div>
+
+        <!-- Trainer card -->
+        <div class="trainer">
+          <div class="avatar" style="background:${info.color}">${info.face}</div>
+          <div style="min-width:140px">
+            <h1>${esc(info.name)}</h1>
+            <div class="role">${UNIT} ジムトレーナー</div>
+            <div class="badges">
+              ${Array.from({length:5},(_,i)=>`<span class="badge-dot ${i<Math.min(5,lvl-1)?'':'dim'}"></span>`).join("")}
+            </div>
+          </div>
+          <div style="margin-left:auto; min-width:120px">
+            <div class="level-pill"><b>Lv.${lvl}</b><span>TRAINER</span></div>
+            <div class="xpbar">
+              <div class="track"><div class="fillx" style="width:${xpPct}%"></div></div>
+              <div class="cap">この月の申請 ${savedHalves}/2</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Months -->
+        <div class="periodrow">
+          <span class="label">期間（2026）</span>
+          ${MONTHS.map(p=>`<button class="seg ${p.id===curPeriodId()?'on':''}" data-period="${p.id}">${p.label.replace("2026年","")}</button>`).join("")}
+        </div>
+
+        <!-- Summary -->
+        <div class="section">
+          <div class="section-head"><span class="chip">Status</span><h2>${meta.label} の稼働サマリ</h2></div>
+          <div class="hpcard">
+            <div class="hp-stats">
+              <div class="stat">
+                <div class="num">${recommendedH}<small>h</small></div>
+                <div class="lab">推奨HP（わざ合計）</div>
+              </div>
+              <div class="stat"><div class="num">${applied}<small>h</small></div><div class="lab">申請合計</div></div>
+              <div class="stat diff"><div class="num ${diff<=0?'pos':'neg'}">${diff>0?'+':''}${diff}<small>h</small></div><div class="lab">差分</div></div>
+            </div>
+            <div class="hpbar-top"><span>申請 ${applied}h</span><span>推奨 ${recommendedH}h</span></div>
+            <div class="hpbar"><div class="fill ${over?'over':''}" style="width:${pct}%"></div></div>
+            <div class="hp-note ${diff<=0?'pos':'neg'}">
+              ${diff<=0 ? `✓ 推奨より ${Math.abs(diff)}h 余裕があります` : `⚠ 推奨を ${diff}h 超過しています — ULに相談しましょう`}
+            </div>
+          </div>
+        </div>
+
+        <!-- Moves -->
+        <div class="section">
+          <div class="section-head"><span class="chip">Moveset</span><h2>ロール（おぼえているわざ）</h2></div>
+          <div class="moves">
+            ${cur().moves.map(renderMove).join("")}
+            <button class="addmove" data-add="1">＋ わざをおぼえる</button>
+          </div>
+          <div class="totalrow"><span>わざ合計</span><b>${moveTotal}h</b></div>
+        </div>
+
+        <!-- Apply -->
+        <div class="section">
+          <div class="section-head"><span class="chip">Apply</span><h2>シフト申請</h2></div>
+          <div class="applycard">
+            <p class="sub">前半（15日締め）・後半（月末締め）の2回申請します</p>
+            <div class="applygrid">
+              ${renderApplyBox("first","前半申請","15日締め")}
+              ${renderApplyBox("second","後半申請","月末締め")}
+            </div>
+            <div class="applytotal">申請合計 <b>${applied}h</b></div>
+          </div>
+        </div>
+
+        <!-- Consult -->
+        <div class="section">
+          <div class="section-head"><span class="chip">Center</span><h2>ULへの相談（ポケモンセンター）</h2></div>
+          <div class="consult">
+            <p class="sub" style="font-size:.8rem;color:var(--pkb-muted)">相談したい内容を選んで送信してください（MTGを設置済み）</p>
+            <div class="opts">
+              ${CONSULT_REASONS.map((r,i)=>`
+                <div class="opt ${cur().consult.reasons.includes(i)?'on':''}" data-reason="${i}">
+                  <span class="box">${cur().consult.reasons.includes(i)?'✓':''}</span><span>${esc(r)}</span>
+                </div>`).join("")}
+            </div>
+            <textarea class="consult-msg" placeholder="補足メッセージ（任意）">${esc(cur().consult.message||"")}</textarea>
+            <button class="btn btn-red" data-consult="1" style="margin-top:12px">相談を送信する（保存はセーブボタンから）</button>
+          </div>
+        </div>
+
+        <div class="savebar">
+          <span class="saved-note">セーブすると ${esc(info.name)} のデータが全員に共有されます</span>
+          <button class="btn btn-blue" data-save="1" ${saving?"disabled":""}>${saving?"💾 保存中…":"💾 ぼうけんのきろくをセーブ"}</button>
+        </div>
+      </div>
+    `;
+    bind();
+  }
+
+  function renderMove(m){
+    const t = TYPES[m.type]||TYPES.common;
+    return `
+      <div class="move ${t.cls}">
+        <div class="editbtns">
+          <button class="iconbtn" data-edit="${m.id}" title="編集">✎</button>
+          <button class="iconbtn" data-del="${m.id}" title="削除">✕</button>
+        </div>
+        <span class="type ${t.cls}">${t.label}</span>
+        <h3>${esc(m.name)}</h3>
+        <div class="desc">${esc(m.desc||"")}</div>
+        <div class="pp"><b>${+m.hours||0}</b><span>h / PP</span></div>
+      </div>`;
+  }
+  function renderApplyBox(key,title,cap){
+    const s = cur().shift;
+    const saved = key==="first"?s.firstSaved:s.secondSaved;
+    const val = key==="first"?s.first:s.second;
+    return `
+      <div class="applybox">
+        <h4>${title}</h4><div class="cap">${cap}</div>
+        <div class="hinput"><input type="number" min="0" step="0.5" value="${val||""}" data-shift="${key}" placeholder="0"><span>h</span></div>
+        <button class="btn ${saved?'btn-saved':'btn-red'}" data-applybtn="${key}">${saved?'✓ 申請済み（修正可）':(key==="first"?'前半を申請':'後半を申請')}</button>
+      </div>`;
+  }
+
+  function bind(){
+    document.querySelectorAll("[data-member]").forEach(b=> b.onclick=()=> selectMember(b.dataset.member));
+    document.querySelectorAll("[data-period]").forEach(b=> b.onclick=()=>{ meS().period=b.dataset.period; ensurePeriod(b.dataset.period); render(); });
+    const add=$("[data-add]"); if(add) add.onclick=()=>openMoveModal(null);
+    document.querySelectorAll("[data-edit]").forEach(b=> b.onclick=()=>openMoveModal(b.dataset.edit));
+    document.querySelectorAll("[data-del]").forEach(b=> b.onclick=()=>{ cur().moves=cur().moves.filter(m=>m.id!==b.dataset.del); render(); });
+    document.querySelectorAll("[data-shift]").forEach(inp=> inp.oninput=()=>{ cur().shift[inp.dataset.shift]=parseFloat(inp.value)||0; updateLiveTotals(); });
+    document.querySelectorAll("[data-applybtn]").forEach(b=> b.onclick=()=>{
+      const k=b.dataset.applybtn;
+      if(k==="first") cur().shift.firstSaved=true; else cur().shift.secondSaved=true;
+      toast(k==="first"?"前半シフトを申請しました（セーブして共有）":"後半シフトを申請しました（セーブして共有）","📋"); render();
+    });
+    document.querySelectorAll("[data-reason]").forEach(o=> o.onclick=()=>{
+      const i=+o.dataset.reason, arr=cur().consult.reasons, idx=arr.indexOf(i);
+      if(idx>=0) arr.splice(idx,1); else arr.push(i); render();
+    });
+    const ta=$(".consult-msg"); if(ta) ta.oninput=()=>{ cur().consult.message=ta.value; };
+    const cs=$("[data-consult]"); if(cs) cs.onclick=()=>{
+      if(!cur().consult.reasons.length && !(cur().consult.message||"").trim()){ toast("相談内容を入力してください","✏️"); return; }
+      toast("相談内容を記録しました。下の「セーブ」でULに共有されます","📨");
+    };
+    const sv=$("[data-save]"); if(sv) sv.onclick=save;
+    const rf=$("[data-refresh]"); if(rf) rf.onclick=refreshAll;
+  }
+
+  function updateLiveTotals(){
+    const recommendedH=recommended(), applied=sumShift(), diff=applied-recommendedH;
+    const pct=recommendedH>0?Math.min(100,Math.round(applied/recommendedH*100)):0, over=applied>recommendedH;
+    const stats=document.querySelectorAll(".hp-stats .stat");
+    if(stats[1]) stats[1].querySelector(".num").innerHTML=`${applied}<small>h</small>`;
+    if(stats[2]){ const n=stats[2].querySelector(".num"); n.className="num "+(diff<=0?"pos":"neg"); n.innerHTML=`${diff>0?'+':''}${diff}<small>h</small>`; }
+    const fill=$(".hpbar .fill"); if(fill){ fill.style.width=pct+"%"; fill.className="fill "+(over?"over":""); }
+    const top=$(".hpbar-top"); if(top){ top.firstElementChild.textContent=`申請 ${applied}h`; top.lastElementChild.textContent=`推奨 ${recommendedH}h`; }
+    const note=$(".hp-note"); if(note){ note.className="hp-note "+(diff<=0?"pos":"neg"); note.textContent=diff<=0?`✓ 推奨より ${Math.abs(diff)}h 余裕があります`:`⚠ 推奨を ${diff}h 超過しています — ULに相談しましょう`; }
+    const at=$(".applytotal"); if(at) at.innerHTML=`申請合計 <b>${applied}h</b>`;
+  }
+
+  async function selectMember(id){
+    state.selected = id;
+    try { localStorage.setItem(SELECTED_KEY, id); } catch(e){}
+    render();
+    // fetch the latest shared data whenever switching to see others' updates
+    refreshAll();
+  }
+
+  async function refreshAll(){
+    if(refreshing) return;
+    refreshing = true; render();
+    try {
+      const fromServer = await fetchMembers();
+      MEMBERS.forEach(m=>{ if(fromServer[m.id]) state.members[m.id] = fromServer[m.id]; });
+      lastNetworkError = false;
+    } catch(e){
+      lastNetworkError = true;
+    }
+    refreshing = false; render();
+  }
+
+  async function save(){
+    if(saving) return;
+    saving = true; render();
+    try {
+      await pushMember(state.selected, meS());
+      toast("セーブしました。全員に共有されました","💾");
+    } catch(e){
+      toast("セーブに失敗しました。通信環境をご確認ください","⚠️");
+    }
+    saving = false; render();
+  }
+
+  function openMoveModal(id){
+    const editing = id ? cur().moves.find(m=>m.id===id) : null;
+    const m = editing || { type:"common", name:"", desc:"", hours:0 };
+    const ov=document.createElement("div"); ov.className="overlay";
+    ov.innerHTML=`
+      <div class="modal">
+        <div class="modal-h">${editing?"わざを編集":"わざをおぼえる"}</div>
+        <div class="modal-b">
+          <div class="field"><label>わざ名（ロール）</label><input id="f-name" value="${esc(m.name)}" placeholder="例：動画編集アドバンス"></div>
+          <div class="field"><label>説明</label><input id="f-desc" value="${esc(m.desc)}" placeholder="例：動画 / 役割"></div>
+          <div class="field"><label>タイプ</label><select id="f-type">${TYPE_KEYS.map(k=>`<option value="${k}" ${k===m.type?'selected':''}>${TYPES[k].label}</option>`).join("")}</select></div>
+          <div class="field"><label>工数（h / PP）</label><input id="f-hours" type="number" min="0" step="0.5" value="${m.hours||0}"></div>
+        </div>
+        <div class="modal-f">
+          <button class="btn btn-ghost" data-cancel="1">キャンセル</button>
+          <button class="btn btn-blue" data-ok="1">${editing?"更新":"おぼえる"}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+    ov.onclick=e=>{ if(e.target===ov) ov.remove(); };
+    ov.querySelector("[data-cancel]").onclick=()=>ov.remove();
+    ov.querySelector("[data-ok]").onclick=()=>{
+      const name=$("#f-name",ov).value.trim(); if(!name){ $("#f-name",ov).focus(); return; }
+      const payload={ type:$("#f-type",ov).value, name, desc:$("#f-desc",ov).value.trim(), hours:parseFloat($("#f-hours",ov).value)||0 };
+      if(editing) Object.assign(editing,payload); else cur().moves.push({id:uid(),...payload});
+      ov.remove(); render();
+    };
+    $("#f-name",ov).focus();
+  }
+
+  let toastTimer=null;
+  function toast(msg,icon){
+    let t=$(".toast"); if(!t){ t=document.createElement("div"); t.className="toast"; document.body.appendChild(t); }
+    t.innerHTML=(icon?`<span>${icon}</span>`:"")+esc(msg);
+    requestAnimationFrame(()=> t.classList.add("show"));
+    clearTimeout(toastTimer); toastTimer=setTimeout(()=> t.classList.remove("show"),1900);
+  }
+
+  (async function(){ state=await load(); render(); })();
+})();
+</script>
+</body>
+</html>
