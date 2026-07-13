@@ -175,13 +175,32 @@ TrainerHub / UnitC — ジムトレーナー稼働ログ / シフト管理
   .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); background:var(--pkb-ink); color:#fff; padding:11px 20px; border-radius:999px; font-weight:700; font-size:.85rem; box-shadow:var(--shadow-lg); z-index:60; opacity:0; transition:all .3s; pointer-events:none; display:flex; align-items:center; gap:8px; }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
-  .savebar { position:sticky; bottom:0; margin-top:30px; padding:14px 0; background:linear-gradient(180deg,transparent,var(--pkb-paper) 40%); display:flex; gap:10px; justify-content:flex-end; z-index:10; }
+  .savebar { position:sticky; bottom:0; margin-top:30px; padding:14px 0; background:linear-gradient(180deg,transparent,var(--pkb-paper) 40%); display:flex; gap:10px; justify-content:flex-end; z-index:10; flex-wrap:wrap; }
   .savebar .btn { width:auto; padding:11px 26px; }
   .saved-note { font-size:.72rem; color:var(--pkb-muted); align-self:center; margin-right:auto; }
+
+  /* ---------- Over-recommended alert band (visible to everyone) ---------- */
+  .alertband { margin-top:16px; background:linear-gradient(180deg,#ffe1e1,#ffcdcd); border:2px solid var(--pkb-red); color:var(--pkb-red-dk); border-radius:14px; padding:13px 16px; font-size:.86rem; font-weight:800; box-shadow:var(--shadow-sm); display:flex; align-items:flex-start; gap:8px; }
+  .alertband .ic { font-size:1.1rem; line-height:1.2; flex:none; }
+  .alertband.ok { background:linear-gradient(180deg,#e6f6ec,#d9f0e2); border-color:var(--pkb-pos); color:#1f6b41; }
+
+  /* ---------- Team status board ---------- */
+  .teamboard { display:flex; flex-direction:column; gap:8px; }
+  .tbrow { display:flex; align-items:center; gap:10px; background:var(--pkb-card); border:1px solid var(--pkb-line); border-radius:12px; padding:10px 12px; }
+  .tbrow.over { border-color:var(--pkb-red); background:rgba(238,21,21,.05); }
+  .tbrow.me { box-shadow:0 0 0 2px var(--pkb-blue) inset; }
+  .tb-face { width:30px;height:30px;border-radius:9px;flex:none;display:grid;place-items:center;font-size:1.05rem;border:2px solid var(--pkb-ink); }
+  .tb-name { font-weight:800; font-size:.9rem; min-width:80px; }
+  .tb-nums { color:var(--pkb-slate); font-size:.84rem; font-weight:700; margin-left:auto; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .tb-badge { font-size:.72rem; font-weight:800; padding:3px 10px; border-radius:999px; background:#e4eaf2; color:var(--pkb-slate); flex:none; }
+  .tb-badge.ok { background:rgba(46,155,87,.14); color:var(--pkb-pos); }
+  .tb-badge.over { background:var(--pkb-red); color:#fff; }
+  .tb-badge.none { background:#eef1f5; color:var(--pkb-muted); }
 
   @media (max-width:640px){
     .hp-stats{ grid-template-columns:1fr 1fr 1fr } .moves{ grid-template-columns:1fr } .applygrid{ grid-template-columns:1fr }
     .trainer h1{ font-size:1.3rem } .level-pill{ margin-left:0 }
+    .tb-name{ min-width:64px; font-size:.84rem } .tb-nums{ font-size:.78rem }
   }
 </style>
 </head>
@@ -377,6 +396,21 @@ TrainerHub / UnitC — ジムトレーナー稼働ログ / シフト管理
     return lvl;
   }
 
+  // status of every member for a given month (used by the team board / alert / export)
+  function memberMonthStatus(id, monthId){
+    const md = state.members[id];
+    const p = md && md.data ? md.data[monthId] : null;
+    const moves = p && p.moves ? p.moves : [];
+    const rec = moves.reduce((a,x)=>a+(+x.hours||0),0);
+    const sh = (p && p.shift) ? p.shift : {};
+    const applied = (+sh.first||0)+(+sh.second||0);
+    const applied2 = !!(sh.firstSaved || sh.secondSaved);
+    return { rec, applied, diff: applied-rec, over: applied>rec, applied2, hasData: !!p };
+  }
+  function teamOverview(monthId){
+    return MEMBERS.map(m=>({ m, ...memberMonthStatus(m.id, monthId) }));
+  }
+
   function render(){
     const root = $("#root");
     const info = meInfo();
@@ -391,6 +425,13 @@ TrainerHub / UnitC — ジムトレーナー稼働ログ / シフト管理
     const savedHalves = (cur().shift.firstSaved?1:0)+(cur().shift.secondSaved?1:0);
     const xpPct = savedHalves/2*100;
 
+    // team-wide status for the currently selected month
+    const overview = teamOverview(curPeriodId());
+    const overMembers = overview.filter(o=>o.over);
+    const alertHtml = overMembers.length
+      ? `<div class="alertband"><span class="ic">⚠</span><span>${meta.label}：推奨時間を超過しているメンバーがいます — ${overMembers.map(o=>`${esc(o.m.name)}（+${o.diff}h）`).join(" / ")}。ULへの相談をおすすめします。</span></div>`
+      : `<div class="alertband ok"><span class="ic">✓</span><span>${meta.label}：全員が推奨時間内です。</span></div>`;
+
     root.innerHTML = `
       <div class="topband">
         <div class="topband-inner">
@@ -404,6 +445,8 @@ TrainerHub / UnitC — ジムトレーナー稼働ログ / シフト管理
 
       <div class="wrap">
         ${lastNetworkError ? `<div class="netbanner">⚠ サーバーに接続できませんでした。表示中のデータは古い可能性があります。「🔄 最新を取得」でやり直してください。</div>` : ""}
+
+        ${alertHtml}
 
         <!-- Member picker -->
         <div class="picker">
@@ -462,6 +505,20 @@ TrainerHub / UnitC — ジムトレーナー稼働ログ / シフト管理
           </div>
         </div>
 
+        <!-- Team board -->
+        <div class="section">
+          <div class="section-head"><span class="chip">Team</span><h2>${meta.label} 全員のステータス</h2></div>
+          <div class="teamboard">
+            ${overview.map(o=>`
+              <div class="tbrow ${o.over?'over':''} ${o.m.id===state.selected?'me':''}">
+                <span class="tb-face" style="background:${o.m.color}">${o.m.face}</span>
+                <span class="tb-name">${esc(o.m.name)}</span>
+                <span class="tb-nums">申請 ${o.applied}h / 推奨 ${o.rec}h</span>
+                <span class="tb-badge ${o.over?'over':(o.applied2?'ok':'none')}">${o.over?`超過 +${o.diff}h`:(o.applied2?`OK ${o.diff}h`:'未申請')}</span>
+              </div>`).join("")}
+          </div>
+        </div>
+
         <!-- Moves -->
         <div class="section">
           <div class="section-head"><span class="chip">Moveset</span><h2>ロール（おぼえているわざ）</h2></div>
@@ -503,6 +560,7 @@ TrainerHub / UnitC — ジムトレーナー稼働ログ / シフト管理
 
         <div class="savebar">
           <span class="saved-note">セーブすると ${esc(info.name)} のデータが全員に共有されます</span>
+          <button class="btn btn-ghost" data-export="1">📊 スプレッドシートに出力</button>
           <button class="btn btn-blue" data-save="1" ${saving?"disabled":""}>${saving?"💾 保存中…":"💾 ぼうけんのきろくをセーブ"}</button>
         </div>
       </div>
@@ -559,6 +617,40 @@ TrainerHub / UnitC — ジムトレーナー稼働ログ / シフト管理
     };
     const sv=$("[data-save]"); if(sv) sv.onclick=save;
     const rf=$("[data-refresh]"); if(rf) rf.onclick=refreshAll;
+    const ex=$("[data-export]"); if(ex) ex.onclick=exportCSV;
+  }
+
+  // Export every member's record (all months with data) as a spreadsheet-ready CSV.
+  function csvCell(v){ const s=String(v==null?"":v); return /[",\r\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
+  function exportCSV(){
+    const header = ["メンバー","月","わざ合計(推奨h)","申請合計h","差分h","判定","前半申請","後半申請","相談理由","補足メモ"];
+    const rows = [header];
+    MEMBERS.forEach(m=>{
+      const md = state.members[m.id]; const data = (md && md.data) || {};
+      MONTHS.forEach(mo=>{
+        const p = data[mo.id]; if(!p) return;
+        const s = memberMonthStatus(m.id, mo.id);
+        const reasons = ((p.consult && p.consult.reasons) || []).map(i=>CONSULT_REASONS[i]).filter(Boolean).join(" / ");
+        const sh = p.shift || {};
+        rows.push([
+          m.name, mo.label, s.rec, s.applied, (s.diff>0?"+":"")+s.diff,
+          s.over ? "超過" : (s.applied2 ? "OK" : "未申請"),
+          sh.firstSaved ? "済" : "", sh.secondSaved ? "済" : "",
+          reasons, (p.consult && p.consult.message) || ""
+        ]);
+      });
+    });
+    const csv = rows.map(r=>r.map(csvCell).join(",")).join("\r\n");
+    // BOM so Excel / Google Sheets read Japanese correctly
+    const blob = new Blob(["﻿"+csv], { type:"text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const d = new Date();
+    const stamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;
+    const a = document.createElement("a");
+    a.href = url; a.download = `UnitC_シフト記録_${stamp}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    toast("記録をダウンロードしました（Excel / スプレッドシートで開けます）","📊");
   }
 
   function updateLiveTotals(){
