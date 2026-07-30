@@ -12,8 +12,9 @@ export default async function handler(req, res) {
       contentType: "application/json",
       addRandomSuffix: false,
       allowOverwrite: true,
+      storeId: process.env.BLOB_STORE_ID,
     });
-    const info = await head(testPath);
+    const info = await head(testPath, { storeId: process.env.BLOB_STORE_ID });
     const upstream = await fetch(info.url);
     const readBack = await upstream.json();
     res.status(200).json({

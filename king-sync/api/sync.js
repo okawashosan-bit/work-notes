@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       return;
     }
     try {
-      const info = await head(blobPath(key));
+      const info = await head(blobPath(key), { storeId: process.env.BLOB_STORE_ID });
       const upstream = await fetch(info.url);
       const data = await upstream.json();
       res.status(200).json({ ok: true, found: true, updatedAt: info.uploadedAt, data });
@@ -54,6 +54,7 @@ export default async function handler(req, res) {
       contentType: "application/json",
       addRandomSuffix: false,
       allowOverwrite: true,
+      storeId: process.env.BLOB_STORE_ID,
     });
     res.status(200).json({ ok: true, updatedAt: new Date().toISOString() });
     return;
