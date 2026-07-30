@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<!--
+  キング構想部屋
+  ────────────────
+  使い方:
+  このHTMLファイルをブラウザで開くだけで動きます。
+  インターネット接続・サーバー不要。
+  データはブラウザのlocalStorageに保存されます（同じブラウザ・端末で引き継がれます）。
+
+  他の人に渡す場合:
+  このファイルをそのまま渡してください。
+  各自のブラウザで開けば独立して使えます（データは共有されません）。
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>キング構想部屋</title>
+<style>
+:root{--bg:#F5F1E8;--surface:#FFFCF5;--border:#E5DFCF;--border-mid:#D5CEBC;--text:#26231C;--text-muted:#9E9688;--text-hint:#C4BBAA;--accent:#C47A5A;--accent-light:#F5EDE6;--accent2:#B89B4A;--accent2-light:#F5F0DC;--accent3:#6EA889;--radius:14px;--radius-sm:10px;--shadow-card:2px 2px 0 #E5DFCF}@media(prefers-color-scheme:dark){:root{--bg:#2A2520;--surface:#342E28;--border:#4A4238;--border-mid:#5A5148;--text:#E8E0D4;--text-muted:#A89E90;--text-hint:#6A6058;--accent:#D9967A;--accent-light:#3A2E28;--accent2:#D4B86A;--accent2-light:#3A3428;--accent3:#7CCCAA;--shadow-card:2px 2px 0 rgba(0,0,0,.25)}}*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}.app{max-width:580px;margin:0 auto;padding:1.25rem 1rem 3rem}header{display:flex;align-items:baseline;gap:10px;margin-bottom:1.5rem}header h1{font-size:22px;font-weight:700;letter-spacing:-.02em;font-family:Georgia,'Hiragino Mincho ProN',YuMincho,serif;color:var(--text)}header h1::before{content:'📓 '}header span{font-size:12px;color:var(--text-muted);font-family:SFMono-Regular,ui-monospace,Menlo,monospace;letter-spacing:.03em}.tabs{display:flex;gap:3px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:12px;box-shadow:var(--shadow-card)}.tab{flex:1;padding:8px 0;border:none;background:0 0;border-radius:999px;font-size:12px;color:var(--text-muted);cursor:pointer;font-family:inherit;font-weight:600;transition:all .15s}.tab.active{background:var(--text);color:var(--bg);font-weight:700;box-shadow:none}#tasks-subtabs{background:var(--bg)}#tasks-subtabs .subtab{background:0 0;box-shadow:none;color:var(--text-muted);font-weight:600}#tasks-subtabs .subtab.on{background:var(--surface);color:var(--text);border:1px solid var(--border);box-shadow:none}.pane{display:none}.pane.active{display:block}.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:.9rem 1rem;margin-bottom:10px;box-shadow:var(--shadow-card)}.field-label{font-size:12px;color:var(--text-muted);font-weight:500;margin-bottom:8px;letter-spacing:.04em;font-family:SFMono-Regular,ui-monospace,Menlo,monospace;text-transform:uppercase;font-size:10px}.input-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}input[type=date],input[type=number],input[type=text],select{background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;font-size:13px;color:var(--text);font-family:inherit;outline:0}input[type=date]:focus,input[type=number]:focus,input[type=text]:focus,select:focus{border-color:var(--accent)}input[type=text]{width:100%}input[type=number]{width:72px}.energy-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.ebtn{padding:8px 4px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text-muted);font-size:12px;cursor:pointer;text-align:center;font-family:inherit;line-height:1.4;transition:all .15s}.ebtn strong{display:block;font-size:16px;font-weight:600;color:var(--text)}.ebtn.active{border-color:var(--accent);background:var(--accent);color:#fff;box-shadow:1px 1px 0 var(--border)}.ebtn.active strong{color:#fff}.btn-primary{width:100%;padding:11px;background:var(--text);color:var(--bg);border:none;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;box-shadow:2px 2px 0 var(--border);transition:transform .12s,box-shadow .12s}.btn-primary:hover{transform:translateY(-1px);box-shadow:3px 3px 0 var(--border)}.btn-secondary{padding:7px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:999px;font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;box-shadow:1px 1px 0 var(--border)}.chip{font-size:11px;padding:2px 7px;border-radius:999px;font-weight:500;white-space:nowrap}.chip-gray{background:var(--bg);color:var(--text-muted);border:1px solid var(--border)}.chip-e1{background:#eaf3de;color:#3b6d11}.chip-e2{background:#e6f1fb;color:#185fa5}.chip-e3{background:#faeeda;color:#854f0b}.chip-e4{background:#faece7;color:#993c1d}.chip-e5{background:#fcebeb;color:#a32d2d}.chip-ph{background:#fcebeb;color:#a32d2d}.chip-pm{background:#faeeda;color:#854f0b}.chip-pl{background:#eaf3de;color:#3b6d11}.chip-dl-ok{background:#e6f1fb;color:#185fa5}.chip-dl-near{background:#faeeda;color:#854f0b}.chip-dl-today{background:#fcebeb;color:#a32d2d;font-weight:600}.chip-rec{background:#f0eaf8;color:#6b3fa0}@media(prefers-color-scheme:dark){.chip-e1,.chip-pl{background:#1a2e14;color:#7fc254}.chip-e2{background:#102040;color:#5fa8e8}.chip-e3,.chip-pm{background:#2e2010;color:#e0a040}.chip-e4{background:#2e1810;color:#e07040}.chip-e5,.chip-ph{background:#2e1010;color:#e05050}.chip-dl-ok{background:#102040;color:#5fa8e8}.chip-dl-near{background:#2e2010;color:#e0a040}.chip-dl-today{background:#2e1010;color:#e05050}.chip-rec{background:#2a1a40;color:#c090f0}}.inline-sel{font-size:11px;padding:2px 5px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);color:var(--text-muted);font-family:inherit;cursor:pointer}.inline-sel:focus{border-color:var(--accent);outline:0}.inline-date{font-size:11px;padding:2px 5px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);color:var(--text-muted);font-family:inherit;cursor:pointer}.tcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;box-shadow:var(--shadow-card)}.tcard:last-child{margin-bottom:0}.tcard-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px}.tcard-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px}.tcard-row:last-child{margin-bottom:0}.tcard-label{font-size:11px;color:var(--text-hint);width:44px;flex-shrink:0}.tcard-name-input{font-size:13px;font-weight:500;color:var(--text);background:0 0;border:none;border-bottom:1.5px solid transparent;border-radius:0;padding:0 0 1px;width:100%;font-family:inherit;outline:0;transition:border-color .15s}.tcard-name-input:hover{border-bottom-color:var(--border-mid)}.tcard-name-input:focus{border-bottom-color:var(--accent)}.drag-handle{cursor:grab;color:var(--text-hint);font-size:14px;padding:2px 4px;user-select:none;flex-shrink:0;margin-top:1px}.drag-handle:active{cursor:grabbing}.tcard{transition:opacity .15s,box-shadow .15s}.tcard.dragging{opacity:.4}.tcard.drag-over{box-shadow:0 -2px 0 var(--accent)}.auto-chip{font-size:10px;padding:1px 6px;border-radius:999px;background:var(--accent-light);color:var(--accent);font-weight:600;flex-shrink:0}.del-btn{background:0 0;border:none;color:var(--text-hint);cursor:pointer;font-size:16px;padding:2px 4px;border-radius:4px;line-height:1;margin-left:auto}.del-btn:hover{color:#e24b4a}.empty{font-size:13px;color:var(--text-muted);padding:16px 0;text-align:center}.check-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);user-select:none}.check-item:last-child{border-bottom:none}.check-item .task-name{flex:1;font-size:13px}.counter{display:flex;align-items:center;gap:6px;flex-shrink:0}.counter-btn{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border-mid);background:var(--bg);color:var(--text);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit}.counter-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}.counter-btn:disabled{opacity:.3;cursor:default}.counter-val{min-width:18px;text-align:center;font-size:14px;font-weight:600}.counter-val.active{color:var(--accent)}.selected-count{font-size:12px;color:var(--text-muted);margin-top:8px}.done-checks{display:flex;gap:5px;flex-shrink:0}.done-chk{width:21px;height:21px;border-radius:50%;flex-shrink:0;border:1.5px solid var(--border-mid);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .12s}.done-chk.checked{background:var(--accent);border-color:var(--accent);box-shadow:1px 1px 0 var(--border)}.done-chk.checked::after{content:'';display:block;width:4px;height:8px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translate(-1px,-1px)}.check-item.all-done .task-name{color:var(--text-hint);text-decoration:line-through;text-decoration-color:var(--border-mid)}.check-item.all-done{opacity:.5}.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center}.stat-label{font-size:11px;color:var(--text-muted);margin-bottom:4px}.stat-val{font-size:22px;font-weight:600}.rank-badge{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}.rb1{background:#faeeda;color:#854f0b}.rb2{background:#e6f1fb;color:#185fa5}.rb3{background:#eaf3de;color:#3b6d11}.rbn{background:var(--bg);color:var(--text-muted);border:1px solid var(--border)}@media(prefers-color-scheme:dark){.rb1{background:#2e2010;color:#e0a040}.rb2{background:#102040;color:#5fa8e8}.rb3{background:#1a2e14;color:#7fc254}}.task-item{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:10px 0;border-bottom:1px solid var(--border)}.task-item:last-child{border-bottom:none}.task-item-head{display:flex;align-items:center;gap:8px;flex:1 1 100%;min-width:0}.task-item-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px;flex:1 1 100%;padding-left:32px}.task-name{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fade-out{opacity:.4}.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--text);color:var(--bg);padding:8px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:all .2s;white-space:nowrap;z-index:102;box-shadow:2px 2px 0 var(--border)}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.ach-popup{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}.ach-popup.show{opacity:1;pointer-events:all}.ach-popup-card{background:var(--surface);border-radius:20px;padding:2rem 2rem 1.5rem;text-align:center;max-width:320px;width:90%;box-shadow:4px 4px 0 var(--border);transform:scale(.9);transition:transform .3s;border-top:4px solid var(--accent)}.ach-popup.show .ach-popup-card{transform:scale(1)}.ach-popup-icon{font-size:56px;margin-bottom:12px;line-height:1}.ach-popup-title{font-size:18px;font-weight:700;margin-bottom:6px}.ach-popup-sub{font-size:13px;color:var(--text-muted);margin-bottom:20px}.ach-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.5rem}.ach-stat{background:var(--accent2-light);border-radius:var(--radius-sm);padding:10px 6px;text-align:center}.ach-stat-val{font-size:22px;font-weight:700;color:var(--accent)}.ach-stat-label{font-size:10px;color:var(--text-muted);margin-top:2px}.level-bar-wrap{background:var(--bg);border-radius:999px;height:9px;overflow:hidden;margin:6px 0 12px}.level-bar-fill{height:100%;border-radius:999px;background:var(--accent);transition:width .6s ease}.rank-section{margin-bottom:20px}.rank-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}.rank-label{font-size:12px;font-weight:700;letter-spacing:.06em;padding:3px 12px;border-radius:999px;flex-shrink:0}.rank-S .rank-label{background:#fff0d0;color:#b07000;border:1px solid #e8c060}.rank-A .rank-label{background:#f0e8ff;color:#6030a0;border:1px solid #c8a8f0}.rank-B .rank-label{background:#e0f0ff;color:#1060b0;border:1px solid #90c8f0}.rank-C .rank-label{background:#e8f8e8;color:#207030;border:1px solid #90d090}.rank-D .rank-label{background:#ececec;color:#555;border:1px solid #ccc}@media(prefers-color-scheme:dark){.rank-S .rank-label{background:#3a2800;color:#f0c050;border-color:#8a6020}.rank-A .rank-label{background:#280050;color:#d090ff;border-color:#7040c0}.rank-B .rank-label{background:#002848;color:#60b8ff;border-color:#3068a0}.rank-C .rank-label{background:#082808;color:#60c060;border-color:#307030}.rank-D .rank-label{background:#222;color:#aaa;border-color:#555}}.rank-divider{flex:1;height:1px;background:var(--border)}.badge-grid{display:flex;flex-direction:column;gap:6px}.badge-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--surface);transition:all .15s;position:relative;cursor:default}.badge-item.unlocked{cursor:pointer}.badge-item.locked{opacity:.4}.badge-item.in-collection{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light)}.badge-item.unlocked.rank-S{border-left:4px solid #e8c060}.badge-item.unlocked.rank-A{border-left:4px solid #c8a8f0}.badge-item.unlocked.rank-B{border-left:4px solid #90c8f0}.badge-item.unlocked.rank-C{border-left:4px solid #90d090}.badge-item.unlocked.rank-D{border-left:4px solid #ccc}.badge-item.locked.rank-S{border-left:4px solid #e8c06066}.badge-item.locked.rank-A{border-left:4px solid #c8a8f066}.badge-item.locked.rank-B{border-left:4px solid #90c8f066}.badge-item.locked.rank-C{border-left:4px solid #90d09066}.badge-item.locked.rank-D{border-left:4px solid #cccccc66}.badge-icon{font-size:32px;line-height:1;flex-shrink:0;width:40px;text-align:center}.badge-item.locked .badge-icon{filter:grayscale(1);opacity:.5}.badge-text{flex:1;min-width:0}.badge-name{font-size:13px;font-weight:600;color:var(--text);line-height:1.3}.badge-cond{font-size:11px;color:var(--text-muted);margin-top:2px;line-height:1.4}.badge-status{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px}.badge-rank-pip{font-size:10px;font-weight:700;letter-spacing:.04em}.rank-S .badge-rank-pip{color:#b07000}.rank-A .badge-rank-pip{color:#6030a0}.rank-B .badge-rank-pip{color:#1060b0}.rank-C .badge-rank-pip{color:#207030}.rank-D .badge-rank-pip{color:#777}@media(prefers-color-scheme:dark){.rank-S .badge-rank-pip{color:#f0c050}.rank-A .badge-rank-pip{color:#d090ff}.rank-B .badge-rank-pip{color:#60b8ff}.rank-C .badge-rank-pip{color:#60c060}.rank-D .badge-rank-pip{color:#aaa}}.badge-add-hint{font-size:10px;color:var(--accent);font-weight:500;opacity:0;transition:opacity .15s}.badge-item.unlocked:hover .badge-add-hint{opacity:1}.badge-item.in-collection .badge-add-hint{opacity:1}.badge-item.unlocked:hover{background:var(--bg)}.streak-display{display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(120deg,var(--accent-light),var(--accent2-light));border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1rem}.streak-fire{font-size:28px}.streak-num{font-size:28px;font-weight:700;color:var(--accent)}.streak-label{font-size:12px;color:var(--text-muted)}.new-badge-toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--accent);color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all .3s;white-space:nowrap;z-index:300}.new-badge-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.collection-shelf{display:flex;flex-wrap:wrap;gap:8px;min-height:64px;padding:10px;border-radius:var(--radius);background:var(--bg);border:1.5px dashed var(--border-mid);align-items:center}.collection-shelf.empty-shelf::before{content:'解放済みのバッジを下から選んで飾れます';font-size:12px;color:var(--text-hint)}.shelf-badge{width:52px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-radius:var(--radius-sm);border:1.5px solid transparent;padding:4px;position:relative;transition:transform .15s}.shelf-badge:hover{transform:scale(1.08)}.shelf-badge .shelf-icon{font-size:28px;line-height:1}.shelf-badge .shelf-name{font-size:9px;color:var(--text-muted);text-align:center;line-height:1.2}.shelf-badge .shelf-remove{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#e24b4a;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity .15s}.shelf-badge:hover .shelf-remove{opacity:1}.profile-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.profile-btn{padding:5px 13px;border-radius:999px;border:1.5px solid var(--border);background:0 0;font-size:12px;color:var(--text-muted);cursor:pointer;font-family:inherit;transition:all .12s;white-space:nowrap}.profile-btn:hover{border-color:var(--border-mid)}.profile-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:500}.profile-add-btn{width:28px;height:28px;border-radius:50%;border:1.5px dashed var(--border-mid);background:0 0;color:var(--text-hint);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}.profile-add-btn:hover{border-color:var(--accent);color:var(--accent)}.profile-name-input{font-size:12px;padding:4px 8px;border-radius:999px;border:1.5px solid var(--accent);background:var(--bg);color:var(--text);font-family:inherit;outline:0;width:100px}.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px}.cal-title{font-size:15px;font-weight:600;min-width:100px;text-align:center}.cal-nav{background:0 0;border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 10px;cursor:pointer;font-size:14px;color:var(--text);font-family:inherit;flex-shrink:0}.cal-nav:hover{background:var(--bg)}.cal-view-toggle{display:flex;gap:3px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:3px}.cal-view-btn{padding:3px 10px;border:none;background:0 0;border-radius:4px;font-size:12px;color:var(--text-muted);cursor:pointer;font-family:inherit}.cal-view-btn.active{background:var(--surface);color:var(--text);font-weight:500;border:1px solid var(--border)}.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}.cal-dow{text-align:center;font-size:11px;color:var(--text-muted);padding:4px 0;font-weight:500}.cal-cell{min-height:56px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);padding:5px 6px;cursor:pointer;transition:border-color .12s}.cal-cell:hover{border-color:var(--border-mid)}.cal-cell.today{border-color:var(--accent);background:var(--accent-light)}.cal-cell.other-month{opacity:.3}.cal-cell.selected{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light)}.cal-day-num{font-size:12px;font-weight:500;margin-bottom:4px;color:var(--text-muted)}.cal-cell.selected .cal-day-num,.cal-cell.today .cal-day-num{color:var(--accent);font-weight:700}.cal-summary{display:flex;flex-direction:column;gap:2px}.cal-badge{font-size:10px;font-weight:600;padding:1px 5px;border-radius:4px;text-align:center}.cal-badge-count{background:var(--accent-light);color:var(--accent)}.cal-badge-hours{background:var(--bg);color:var(--text-muted);border:1px solid var(--border)}.cal-badge-rec{background:#f0eaf8;color:#6b3fa0}@media(prefers-color-scheme:dark){.cal-badge-rec{background:#2a1a40;color:#c090f0}}.week-list{display:flex;flex-direction:column;gap:8px;margin-top:4px}.week-day{border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}.week-day-head{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--border)}.week-day-head.today{background:var(--accent-light);border-bottom-color:var(--accent)}.week-day.today{border-color:var(--accent)}.week-dow-label{font-size:11px;font-weight:600;color:var(--text-muted);width:20px;text-align:center}.week-day-head.today .week-dow-label{color:var(--accent)}.week-date-circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--text);flex-shrink:0}.week-day-head.today .week-date-circle{background:var(--accent);color:#fff}.week-day-summary{font-size:11px;color:var(--text-muted);margin-left:auto;display:flex;gap:6px;align-items:center}.week-day-body{padding:6px 10px;background:var(--bg);display:flex;flex-direction:column;gap:5px}.week-day-empty{padding:10px 12px;font-size:12px;color:var(--text-hint);background:var(--bg)}.week-task{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--radius-sm);border-left:3px solid transparent}.week-task-name{font-size:13px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.week-task-chips{display:flex;gap:4px;flex-shrink:0;align-items:center}.wt-ok{background:var(--surface);border-left-color:#5fa8e8}.wt-near{background:#fffbf2;border-left-color:#e0a040}.wt-today{background:#fff8f8;border-left-color:#e05050}.wt-rec{background:#faf7ff;border-left-color:#c090f0}@media(prefers-color-scheme:dark){.wt-ok{background:var(--surface);border-left-color:#5fa8e8}.wt-near{background:#1e1a0e;border-left-color:#e0a040}.wt-today{background:#1e0e0e;border-left-color:#e05050}.wt-rec{background:#140e1e;border-left-color:#c090f0}}.week-empty-week{font-size:13px;color:var(--text-muted);padding:20px 0;text-align:center}.cal-detail{margin-top:1rem}.cal-detail-title{font-size:12px;color:var(--text-muted);margin-bottom:8px;font-weight:500}.cal-detail-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}.cal-detail-item:last-child{border-bottom:none}.timeline-wrap{position:relative;margin-top:4px}.timeline-axis{display:flex;flex-direction:column;gap:0}.timeline-hour{display:flex;align-items:flex-start;min-height:36px;position:relative}.timeline-hour-label{width:36px;font-size:10px;color:var(--text-hint);flex-shrink:0;padding-top:0;line-height:1;margin-top:-5px}.timeline-hour-line{flex:1;border-top:1px solid var(--border);position:relative;min-height:36px}.timeline-hour-line.half-mark::before{content:'';position:absolute;top:50%;left:0;right:0;border-top:1px dashed var(--border);opacity:.5}.work-block{position:absolute;left:0;right:4px;border-radius:4px;background:var(--accent-light);border:1px solid var(--accent);opacity:.6;pointer-events:none}.task-block{position:absolute;left:0;right:4px;border-radius:4px;font-size:10px;padding:2px 5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;line-height:1.4;font-weight:500}.tb-ok{background:#e6f1fb;color:#185fa5;border:1px solid #b8d8f8}.tb-near{background:#faeeda;color:#854f0b;border:1px solid #f0d0a0}.tb-today{background:#fcebeb;color:#a32d2d;border:1px solid #f0b8b8}@media(prefers-color-scheme:dark){.tb-ok{background:#102040;color:#5fa8e8;border-color:#1a3860}.tb-near{background:#2e2010;color:#e0a040;border-color:#4e3820}.tb-today{background:#2e1010;color:#e05050;border-color:#4e2020}}.now-line{position:absolute;left:36px;right:0;height:2px;background:var(--accent);z-index:10;border-radius:1px}.now-line::before{content:'';position:absolute;left:-4px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--accent)}.wh-summary{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.wh-time-inputs{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.wh-time-sel{font-size:12px;padding:4px 7px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit}.dow-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:10px}.dow-head{text-align:center;font-size:11px;color:var(--text-muted);font-weight:500;padding:4px 0}.dow-cell{border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 4px;background:var(--surface)}.dow-cell-name{text-align:center;font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:6px}.dow-cell select{width:100%;font-size:10px;padding:2px 2px;border-radius:4px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit}.dow-cell.off{opacity:.45}.dow-toggle{display:block;text-align:center;font-size:10px;color:var(--text-hint);cursor:pointer;margin-top:4px}.tab-order-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);margin-bottom:6px}.tab-order-item:last-child{margin-bottom:0}.tab-order-num{font-size:11px;color:var(--text-hint);width:18px;text-align:center;flex-shrink:0;font-weight:700}.tab-order-name{font-size:13px;font-weight:600;flex:1;color:var(--text)}.tab-order-btns{display:flex;gap:6px;flex-shrink:0}.goal-card{background:var(--accent-light);border:1.5px solid var(--accent);border-radius:var(--radius);padding:1.1rem 1.1rem 1.15rem;margin-top:16px;box-shadow:2px 2px 0 var(--border)}.goal-card-header{display:flex;align-items:center;gap:7px;margin-bottom:2px}.goal-card-icon{font-size:17px;line-height:1}.goal-card-title{font-size:14px;font-weight:800;color:var(--text);letter-spacing:.01em}.goal-card-desc{font-size:11px;color:var(--text-muted);margin:3px 0 12px;line-height:1.6}.goal-empty{font-size:12px;color:var(--text-hint);padding:14px 0;text-align:center;background:var(--surface);border-radius:var(--radius-sm);border:1.5px dashed var(--border-mid)}.goal-item{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:var(--radius-sm);padding:10px 11px;margin-bottom:7px;box-shadow:0 2px 8px rgba(0,0,0,.05);border:1px solid var(--border)}.goal-item:last-child{margin-bottom:0}.goal-item.rank1{border-left:4px solid #e8c060}.goal-item.rank2{border-left:4px solid #c8c8d8}.goal-item.rank3{border-left:4px solid #d8a878}.goal-item.rank-extra{border-left:4px solid var(--accent)}.goal-item.rank-none{border-left:4px solid var(--border-mid)}.goal-medal{font-size:22px;width:28px;text-align:center;flex-shrink:0;line-height:1}.goal-medal.rank-num{font-size:13px;font-weight:800;color:#fff;background:var(--accent);border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;margin:1px}.goal-medal.no-rank{font-size:11px;font-weight:700;color:var(--text-hint);background:var(--bg);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;margin:3px}.goal-body{flex:1;min-width:0}.goal-name{font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:5px;line-height:1.3}.goal-chips{display:flex;gap:5px;flex-wrap:wrap}.goal-remove{background:0 0;border:none;color:var(--text-hint);cursor:pointer;font-size:17px;padding:2px 5px;flex-shrink:0;border-radius:50%;line-height:1}.goal-remove:hover{color:#e24b4a;background:var(--bg)}.goal-add-title{font-size:11px;color:var(--text-muted);margin-top:14px;margin-bottom:7px;font-weight:600}.goal-add-list{display:flex;flex-direction:column}.goal-add-item{display:flex;align-items:center;gap:10px;background:var(--surface);border:1.5px dashed var(--border-mid);border-radius:var(--radius-sm);padding:9px 11px;margin-bottom:6px;cursor:pointer;transition:all .12s;width:100%;text-align:left;font-family:inherit;color:var(--text)}.goal-add-item:last-child{margin-bottom:0}.goal-add-item:hover{border-color:var(--accent);border-style:solid;background:var(--accent-light)}.goal-add-icon{font-size:15px;width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text-hint);border:1.5px dashed var(--border-mid);transition:all .12s}.goal-add-item:hover .goal-add-icon{color:var(--accent);border-color:var(--accent);border-style:solid}.goal-add-body{flex:1;min-width:0}.goal-add-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.3}.goal-add-chips{display:flex;gap:5px;flex-wrap:wrap}.goal-add-none{font-size:12px;color:var(--text-hint)}.pth-day{font-size:11px;color:var(--text-muted);font-weight:600;margin:10px 0 4px;letter-spacing:.03em}.pth-day:first-child{margin-top:0}.pth-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}.pth-item:last-child{border-bottom:none}.pth-name{flex:1;min-width:0;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pth-pts{flex-shrink:0;font-weight:700;color:var(--accent);font-size:12px}.pth-bonus .pth-pts{color:var(--accent2)}.pth-empty{font-size:12px;color:var(--text-hint);padding:14px 0;text-align:center}.done-chk:focus-visible,[role=button]:focus-visible,[role=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}#pane-checker{--bg:#F5F6F8;--card:#FFFFFF;--ink:#1B1E24;--sub:#6B7280;--line:#E5E7EB;--accent:#8134AF;--g1:#F58529;--g2:#DD2A7B;--g3:#8134AF;--danger:#D93025;--ok:#1E8E5A;font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif;color:var(--ink)}#pane-checker .wrap{max-width:720px;margin:0 auto;padding:28px 16px 64px}#pane-checker .badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.12em;color:#fff;background:linear-gradient(90deg,var(--g1),var(--g2),var(--g3));border-radius:999px;padding:4px 12px;margin-bottom:10px}#pane-checker h1{font-size:24px;font-weight:800;margin:0}#pane-checker .lead{font-size:13px;color:var(--sub);margin:6px 0 0}#pane-checker .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:16px}#pane-checker .card-title{font-size:15px;font-weight:800;margin-bottom:12px}#pane-checker .row-between{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}#pane-checker .label{font-size:12px;font-weight:700;color:var(--sub);margin-bottom:6px;letter-spacing:.04em}#pane-checker textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--ink);resize:vertical;outline:0;background:#fcfcfd;margin-bottom:14px}#pane-checker textarea:focus{border-color:var(--accent)}#pane-checker .btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:12px 24px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}#pane-checker .btn.small{padding:6px 14px;font-size:13px}#pane-checker .btn.primary{border:none;background:var(--ink);color:#fff}#pane-checker .btn:disabled{background:#c9cdd4;color:#fff;border:none;cursor:default}#pane-checker .hint{font-size:12px;color:var(--sub);margin-top:8px}#pane-checker .acct-tabs{display:flex;gap:8px;margin-bottom:18px}#pane-checker .acct-tab{flex:1;min-width:0;padding:10px 8px;border-radius:12px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;border:1px solid var(--line);background:#fcfcfd;color:var(--sub);display:flex;align-items:center;justify-content:center;gap:6px}#pane-checker .acct-tab .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#pane-checker .acct-tab .cnt{font-weight:400;font-size:11px}#pane-checker .acct-tab.active{border:2px solid transparent;color:#fff;background:linear-gradient(135deg,var(--g1),var(--g2),var(--g3))}#pane-checker .acct-tab.active .cnt{color:rgba(255,255,255,.85)}#pane-checker .acct-tab .pen{font-size:12px}#pane-checker .acct-tab input{width:100%;border:none;outline:0;font-family:inherit;font-size:13px;font-weight:700;background:rgba(255,255,255,.9);border-radius:6px;padding:2px 6px;color:var(--ink)}#pane-checker .persona-list{display:flex;flex-wrap:wrap;gap:8px}#pane-checker .chip{cursor:pointer;border:1px solid var(--line);background:#fcfcfd;border-radius:12px;padding:8px 12px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}#pane-checker .chip.active{border:2px solid var(--accent);background:#f7f0fc}#pane-checker .avatar{width:26px;height:26px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--g1),var(--g2),var(--g3));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}#pane-checker .chip .mini{font-weight:400;font-size:12px;color:var(--sub)}#pane-checker .chip .mini.del{color:var(--danger)}#pane-checker .editor{border-top:1px dashed var(--line);margin-top:16px;padding-top:16px}#pane-checker .editor-actions{display:flex;gap:8px;justify-content:flex-end}#pane-checker .import-box{background:#f7f0fc;border:1px solid #e8daf5;border-radius:12px;padding:12px;margin-bottom:16px}#pane-checker .import-box .label{color:var(--accent)}#pane-checker .import-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}#pane-checker .import-row:last-of-type{margin-bottom:0}#pane-checker .import-row input[type=url]{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;font-family:inherit;outline:0;background:#fff}#pane-checker .import-row input[type=url]:focus{border-color:var(--accent)}#pane-checker .import-box .hint{margin-top:8px}#pane-checker .import-box .hint.err{color:var(--danger)}#pane-checker .w-input{width:100%;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:14px;font-family:inherit;color:var(--ink);outline:0;background:#fcfcfd;margin-bottom:14px}#pane-checker .w-input:focus{border-color:var(--accent)}#pane-checker .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}#pane-checker .month-head{font-size:13px;font-weight:800;color:var(--accent);border-bottom:2px solid #e8daf5;padding-bottom:4px;margin:16px 0 8px}#pane-checker .month-head:first-child{margin-top:0}#pane-checker .winner-item{border:1px solid var(--line);border-left:3px solid var(--ok);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13px;line-height:1.6}#pane-checker .winner-item .w-head{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}#pane-checker .winner-item .w-type{font-size:11px;font-weight:700;color:#fff;border-radius:999px;padding:2px 8px;background:linear-gradient(90deg,var(--g2),var(--g3))}#pane-checker .winner-item .w-date{font-weight:700;flex:1;min-width:0}#pane-checker .winner-item .mini{font-weight:400;font-size:12px;color:var(--sub);cursor:pointer}#pane-checker .winner-item .mini.del{color:var(--danger)}#pane-checker .w-nums{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}#pane-checker .w-nums span{font-size:11px;font-weight:700;color:var(--ok);background:#e9f6f0;border-radius:999px;padding:2px 8px}#pane-checker .winner-item .w-content{color:var(--sub);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}#pane-checker .winner-item .w-memo{color:var(--ink);font-size:12px;margin-top:2px}#pane-checker .type-toggle{display:flex;gap:8px;margin-bottom:16px}#pane-checker .type-btn{flex:1;padding:10px 0;border-radius:12px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;border:1px solid var(--line);background:#fcfcfd;color:var(--sub)}#pane-checker .type-btn.active{border:2px solid var(--accent);background:#f7f0fc;color:var(--accent)}#pane-checker .reel-note{font-size:12px;color:var(--g2);margin:-6px 0 10px}#pane-checker .thumb-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}#pane-checker .thumb{position:relative;width:76px;height:76px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#fcfcfd}#pane-checker .thumb img{width:100%;height:100%;object-fit:cover;display:block}#pane-checker .thumb .no{position:absolute;left:4px;top:4px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}#pane-checker .thumb .rm{position:absolute;right:4px;top:4px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;padding:0}#pane-checker .thumb.add{display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--sub);font-size:20px;font-weight:700;border:1.5px dashed var(--line)}#pane-checker .thumb.add span{font-size:10px;font-weight:700;margin-top:2px}#pane-checker .thumb.add:hover{border-color:var(--accent);color:var(--accent)}#pane-checker .center{text-align:center}#pane-checker .err{color:var(--danger);font-size:14px}#pane-checker .ring-wrap{position:relative;width:200px;height:200px;margin:0 auto}#pane-checker .ring-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}#pane-checker .ring-num .n{font-size:48px;font-weight:800;line-height:1}#pane-checker .ring-num .n span{font-size:20px}#pane-checker .ring-num .t{font-size:12px;color:var(--sub);margin-top:4px}#pane-checker #ringFg{transition:stroke-dasharray .9s cubic-bezier(.2,.8,.2,1)}#pane-checker .bubble-row{display:flex;gap:10px;margin:24px 0 8px;align-items:flex-start}#pane-checker .bubble-row .avatar{width:36px;height:36px}#pane-checker .bubble{background:#f1f2f6;border-radius:4px 16px 16px 16px;padding:10px 14px;font-size:14px;line-height:1.7}#pane-checker .axis{margin-bottom:12px}#pane-checker .axis-head{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}#pane-checker .axis-head .name{font-weight:700}#pane-checker .axis-head .score{font-weight:800}#pane-checker .bar{height:8px;border-radius:999px;background:var(--line);overflow:hidden}#pane-checker .bar>div{height:100%;border-radius:999px;width:0;background:linear-gradient(90deg,var(--g1),var(--g2),var(--g3));transition:width .7s ease}#pane-checker .axis-comment{font-size:12px;color:var(--sub);margin-top:3px}#pane-checker .good-item{font-size:14px;line-height:1.7;margin-bottom:4px}#pane-checker .good-item .check{color:var(--ok)}#pane-checker .improve-item{border:1px solid var(--line);border-left:3px solid var(--g2);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:14px;line-height:1.7}#pane-checker .improve-item .p{font-weight:700}#pane-checker .improve-item .s{color:var(--sub);font-size:13px}#pane-checker .rewrite{white-space:pre-wrap;background:#fcfcfd;border:1px dashed var(--accent);border-radius:12px;padding:14px;font-size:14px;line-height:1.8}#pane-checker .footer{font-size:11px;color:var(--sub);text-align:center;margin-top:24px}#pane-checker .hidden{display:none}#pane-checker .mt20{margin-top:20px}#pane-checker .sub-note{font-size:12px;color:var(--sub);margin-bottom:16px}
+</style>
+<style>
+#pane-inkdiary{
+
+&{--ink:#17233F;--ink-2:#1F2E52;--ink-3:#26365f;--paper:#F7F3E9;--paper-line:#E7DFCB;--paper-edge:#EDE6D3;--teal:#26A79A;--teal-deep:#12786C;--amber:#E0A22B;--red:#D96A5B;--on-paper:#2A2A28;--muted:#93A0BE;--muted-2:#6E7B9B;--hair:rgba(255,255,255,.09);--mono:'SFMono-Regular','JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;--serif:'Hiragino Mincho ProN','YuMincho','Yu Mincho',serif;--sans:system-ui,'Hiragino Sans','Yu Gothic UI','Yu Gothic',sans-serif} & *{box-sizing:border-box}&{margin:0} &{background:var(--ink);color:#EAF0FF;font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5;padding:18px 14px 40px}
+.wrap{max-width:520px;margin:0 auto}
+header.top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+.brand{font-family:var(--serif);font-size:24px;letter-spacing:.02em}.brand .dot{color:var(--teal)}
+.tagline{font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--mono);letter-spacing:.04em}
+.today-lbl{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:right}
+.card{background:var(--ink-2);border:1px solid var(--hair);border-radius:14px;padding:16px;margin-bottom:14px}
+.card h2{margin:0 0 12px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;font-family:var(--mono)}
+.chip-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.chip{flex:0 0 auto;border:1px solid var(--hair);background:var(--ink);color:var(--muted);border-radius:20px;padding:7px 14px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:var(--sans)}
+.chip.on{background:var(--teal);border-color:var(--teal);color:#04231f;font-weight:700}
+.chip.on.acc{background:var(--amber);border-color:var(--amber)}
+.chip.add{border-style:dashed;color:var(--teal)}
+.chip .mv{font-size:9px;margin-left:4px;opacity:.6}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.tin{width:100%;height:42px;background:var(--ink);border:1px solid var(--hair);border-radius:10px;color:#fff;font-size:15px;padding:0 12px;font-family:var(--sans)}
+.tin.mono{font-family:var(--mono);text-align:center;font-size:17px;-moz-appearance:textfield}
+.tin::-webkit-outer-spin-button,.tin::-webkit-inner-spin-button{-webkit-appearance:none}
+.tin:focus{outline:none;border-color:var(--teal)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid2 .full{grid-column:1/-1}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px}
+.note{font-size:11.5px;color:var(--muted-2);line-height:1.6;flex:1}
+.ghost{background:transparent;border:1px solid var(--hair);color:var(--muted);border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer;white-space:nowrap}
+.ghost.danger:hover{border-color:var(--red);color:var(--red)}
+.ghost.armed,.reset.armed{border-color:var(--red);color:#fff;background:var(--red)}
+.primary{border:0;border-radius:10px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;background:var(--teal);color:#04231f}
+.empty-note{text-align:center;padding:16px 6px;color:var(--muted);font-size:13px}
+.add-form{margin-top:12px;padding:12px;background:var(--ink);border:1px solid var(--hair);border-radius:12px}
+.add-actions{display:flex;gap:8px;margin-top:10px}.add-actions .primary{flex:1}
+.sub{margin-top:16px;padding-top:14px;border-top:1px solid var(--hair)}
+.sub h3{margin:0 0 10px;font-size:11px;letter-spacing:.12em;color:var(--muted);font-weight:600;font-family:var(--mono);text-transform:uppercase}
+.nav{display:flex;gap:6px;margin-bottom:14px;background:var(--ink-2);border:1px solid var(--hair);border-radius:12px;padding:5px}
+.nav button{flex:1;border:0;background:transparent;color:var(--muted);font-size:14px;font-weight:700;padding:10px 0;border-radius:8px;cursor:pointer;font-family:var(--sans);letter-spacing:.05em}
+.nav button.on{background:var(--teal);color:#04231f}
+.view{display:none}.view.on{display:block}
+.tabs{display:flex;gap:6px;margin-bottom:14px;background:var(--ink);border:1px solid var(--hair);border-radius:10px;padding:4px}
+.tabs button{flex:1;border:0;background:transparent;color:var(--muted);font-size:13px;font-weight:600;padding:8px 0;border-radius:7px;cursor:pointer;font-family:var(--sans)}
+.tabs button.on{background:var(--ink-3);color:#fff}
+.pane{display:none}.pane.on{display:block}
+.ledger{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.stepper{display:flex;align-items:center;background:var(--ink);border:1px solid var(--hair);border-radius:10px;overflow:hidden;min-width:0}
+.stepper button{width:36px;flex:0 0 36px;height:42px;border:0;background:transparent;color:#cfe;font-size:20px;cursor:pointer;font-family:var(--mono)}
+.stepper button:active{background:var(--ink-3)}
+.stepper input{flex:1;min-width:0;width:100%;text-align:center;background:transparent;border:0;color:#fff;font-family:var(--mono);font-size:18px;-moz-appearance:textfield}
+.stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none}
+.stepper input:focus{outline:none}
+.totals{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--ink);border:1px solid rgba(255,255,255,.14);font-size:14px;color:#DCE5F6;line-height:1.9}
+.totals .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.totals .lbl{color:#AFC0DE;font-size:13px}
+.totals b{font-family:var(--mono);color:var(--teal);font-size:20px;font-weight:700}
+.totals .r{font-family:var(--mono);color:#fff;font-size:16px}
+.totals .cur{margin-top:6px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.14);font-size:12.5px;color:#AFC0DE}
+.totals .cur b{font-size:15px;color:var(--amber)}
+.acct-ind{display:inline-flex;align-items:center;gap:6px;background:var(--ink);border:1px solid var(--amber);border-radius:8px;padding:4px 12px;margin-bottom:12px;font-size:13px;color:var(--amber);font-weight:700}
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.shot{position:relative;border:1.5px dashed var(--hair);border-radius:12px;background:var(--ink);min-height:118px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;overflow:hidden;text-align:center;padding:10px}
+.shot:hover{border-color:var(--teal)}
+.shot .tag{position:absolute;top:8px;left:8px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--muted);background:rgba(0,0,0,.35);padding:2px 7px;border-radius:6px;z-index:2}
+.shot .hint{font-size:12px;color:var(--muted)}
+.shot .plus{font-size:22px;color:var(--muted)}
+.shot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.32}
+.shot .nums{position:relative;z-index:2;font-family:var(--mono);font-size:13px;line-height:1.7}
+.shot .nums b{color:var(--teal)}
+.shot.busy .plus{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.shot input[type=file]{display:none}
+.shot-note{font-size:11.5px;color:var(--muted-2);margin-top:10px;line-height:1.7}
+.delta{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--ink);border:1px solid var(--hair);font-size:13px;display:none;line-height:1.7}
+.delta.on{display:block}.delta b{font-family:var(--mono);color:var(--teal)}.delta .warn{color:var(--amber)}
+.apply{margin-top:8px;width:100%;border:0;border-radius:9px;padding:9px 0;font-size:13px;font-weight:600;cursor:pointer;background:var(--teal);color:#04231f}
+.shot-err{color:var(--red);font-size:12px;margin-top:8px;display:none}
+.gauge-card{background:linear-gradient(180deg,var(--ink-2),#1a2748);position:relative;overflow:hidden}
+.gauge-num{display:flex;align-items:baseline;gap:10px}
+.gauge-num .big{font-family:var(--mono);font-size:52px;line-height:1;font-weight:600;letter-spacing:-.02em}
+.gauge-num .of{color:var(--muted);font-family:var(--mono);font-size:15px}
+.gauge-label{font-size:12px;color:var(--muted);margin-top:2px}
+.well{margin-top:14px;height:14px;border-radius:8px;background:#0f1830;border:1px solid var(--hair);overflow:hidden;position:relative}
+.well .fill{position:absolute;inset:0;width:100%;transform-origin:left;background:linear-gradient(90deg,var(--teal-deep),var(--teal));transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.well.low .fill{background:linear-gradient(90deg,#b7791f,var(--amber))}
+.well.over .fill{background:linear-gradient(90deg,#a03b30,var(--red))}
+.paper{background:var(--paper);border-radius:12px;padding:16px 16px 12px;color:var(--on-paper);background-image:repeating-linear-gradient(var(--paper) 0 30px,var(--paper-line) 30px 31px);box-shadow:inset 0 0 0 1px var(--paper-edge)}
+textarea{width:100%;border:0;background:transparent;resize:vertical;min-height:190px;font-family:var(--serif);font-size:17px;line-height:31px;color:var(--on-paper)}
+textarea:focus{outline:none}
+.paper .meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px dashed var(--paper-line)}
+.count{font-family:var(--mono);font-size:13px;color:#6b6b64}.count.over{color:var(--red);font-weight:700}
+.save{border:0;border-radius:10px;padding:9px 18px;font-size:14px;font-weight:600;cursor:pointer;background:var(--teal);color:#04231f}
+.save:disabled{background:#c9c2b0;color:#8a8577;cursor:not-allowed}
+.sum{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.sum .k{font-family:var(--mono);font-size:22px}.sum .v{font-size:11px;color:var(--muted);margin-top:2px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-head .ym{font-family:var(--mono);font-size:16px;letter-spacing:.04em}
+.cal-nav{display:flex;gap:6px}
+.cal-nav button{width:34px;height:34px;border:1px solid var(--hair);background:var(--ink);color:#cfe;border-radius:9px;font-size:16px;cursor:pointer}
+.cal-nav button:active{background:var(--ink-3)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-grid .dow{text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted-2);padding:4px 0}
+.cal-grid .dow.sun{color:#c98a80}.cal-grid .dow.sat{color:#7fa3d6}
+.day{aspect-ratio:1;border-radius:9px;background:var(--ink);border:1px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:var(--mono);font-size:13px;color:var(--muted);position:relative;cursor:pointer}
+.day:hover{border-color:var(--teal)}.day.blank{background:transparent;cursor:default}.day.blank:hover{border-color:transparent}
+.day.has{background:var(--ink-3);color:#fff}.day.has .dot{width:5px;height:5px;border-radius:50%;background:var(--teal)}
+.day.today{border-color:var(--amber)}.day.sel{background:var(--teal);color:#04231f;font-weight:700}.day.sel .dot{background:#04231f}
+.detail{margin-top:14px;display:none}.detail.on{display:block}
+.detail .d-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.detail .d-len{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.detail .d-date{font-family:var(--mono);font-size:15px}
+.d-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.d-stat{background:var(--ink);border:1px solid var(--hair);border-radius:10px;padding:9px 4px;text-align:center}
+.d-stat .l{font-size:10.5px;color:var(--muted)}.d-stat .v{font-family:var(--mono);font-size:20px;color:#fff;margin-top:1px}
+.d-stat .diff{font-family:var(--mono);font-size:11.5px;margin-top:3px}
+.diff.up{color:var(--teal)}.diff.down{color:var(--red)}.diff.flat{color:var(--muted-2)}
+.d-prev-note{grid-column:1/-1;font-size:11px;color:var(--muted-2);text-align:center;padding:2px 0}
+.detail .d-paper{background:var(--paper);border-radius:12px;padding:14px 16px;color:var(--on-paper);background-image:repeating-linear-gradient(var(--paper) 0 28px,var(--paper-line) 28px 29px);box-shadow:inset 0 0 0 1px var(--paper-edge);font-family:var(--serif);font-size:16px;line-height:29px;white-space:pre-wrap;word-break:break-word}
+.d-edit-btn{margin-top:8px;width:100%;border:0;border-radius:9px;padding:8px;font-size:12px;cursor:pointer;background:var(--ink-3);color:var(--muted)}
+.streak-line{display:flex;gap:14px;margin-bottom:14px}
+.streak-box{flex:1;background:var(--ink);border:1px solid var(--hair);border-radius:12px;padding:10px 12px;text-align:center}
+.streak-box .n{font-family:var(--mono);font-size:24px;color:var(--amber);font-weight:700}
+.streak-box .l{font-size:11px;color:var(--muted);margin-top:2px}
+.badge-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.badge{background:var(--ink);border:1px solid var(--hair);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;min-width:0}
+.badge .e{font-size:26px;line-height:1.1;filter:grayscale(1);opacity:.3;flex:0 0 auto}.badge .tx{min-width:0}
+.badge .n{font-size:12.5px;color:var(--muted-2);font-weight:700;line-height:1.3}
+.badge .d{font-size:10.5px;color:var(--muted-2);opacity:.75;line-height:1.4;margin-top:2px}
+.badge.got{border-color:rgba(224,162,43,.5);background:linear-gradient(180deg,#232f55,#1d2a4e)}
+.badge.got .e{filter:none;opacity:1}.badge.got .n{color:#EAF0FF}.badge.got .d{color:#AFC0DE;opacity:1}
+.badge.new{animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{0%{transform:scale(.6)}100%{transform:scale(1)}}
+.badge-count{font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:10px}
+.badge-toast{position:fixed;left:50%;top:20px;transform:translateX(-50%) translateY(-10px);opacity:0;background:linear-gradient(90deg,#b7791f,var(--amber));color:#231a02;padding:12px 20px;border-radius:14px;font-weight:700;font-size:14px;transition:.3s;pointer-events:none;z-index:99;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.badge-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+details.set{margin-top:6px}
+details.set summary{cursor:pointer;color:var(--muted);font-size:12px;font-family:var(--mono);list-style:none}
+details.set summary::-webkit-details-marker{display:none}
+.set-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
+.set-grid .field input{width:100%;height:40px;text-align:center;background:var(--ink);border:1px solid var(--hair);border-radius:10px;color:#fff;font-family:var(--mono);font-size:16px}
+.set-grid .field input:focus{outline:none;border-color:var(--teal)}
+.formula{font-family:var(--mono);font-size:11px;color:var(--muted-2);margin-top:12px;line-height:1.7}
+.reset{margin-top:12px;background:transparent;border:1px solid var(--hair);color:var(--muted);border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--teal);color:#04231f;padding:10px 18px;border-radius:22px;font-weight:600;font-size:14px;transition:.25s;pointer-events:none;z-index:99}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.hidden{display:none !important}
+.info-box{margin-top:8px;padding:10px 12px;border-radius:10px;background:rgba(38,167,154,.08);border:1px solid rgba(38,167,154,.2);font-size:11.5px;color:#AFC0DE;line-height:1.6}
+.privacy-box{margin-top:8px;padding:10px 12px;border-radius:10px;background:rgba(217,106,91,.08);border:1px solid rgba(217,106,91,.2);font-size:11.5px;color:#d4a8a0;line-height:1.6}
+.io-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.io-row button{flex:1;min-width:100px}
+.env-warn{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(224,162,43,.1);border:1px solid rgba(224,162,43,.3);font-size:12px;color:var(--amber);line-height:1.6}
+
+}
+#pane-inkdiary .card{box-shadow:none;}
+#pane-inkdiary input[type=text],#pane-inkdiary input[type=number],#pane-inkdiary input[type=date],#pane-inkdiary select{background:var(--ink);border:1px solid var(--hair);color:#fff;}
+#pane-inkdiary{background:var(--ink);border-radius:14px;padding:16px 12px;color:#EAF0FF;}
+/* ── Bottom nav ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1.5px solid var(--border);display:flex;z-index:100;padding:4px 0 env(safe-area-inset-bottom,4px);}
+.bottom-nav button{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 0 4px;cursor:pointer;font-family:inherit;font-size:10px;color:var(--text-muted);transition:color .12s;}
+.bottom-nav button.active{color:var(--accent);}
+.bottom-nav button .bnav-icon{font-size:20px;line-height:1;}
+.bottom-nav button .bnav-label{font-size:10px;font-weight:600;letter-spacing:.02em;}
+@media(prefers-color-scheme:dark){.bottom-nav{background:var(--surface);}}
+/* ── Home grid ── */
+.home-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+.home-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 14px;cursor:pointer;transition:all .12s;text-align:center;box-shadow:var(--shadow-card);}
+.home-card:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--border);}
+.home-card:active{transform:translate(1px,1px);box-shadow:0 0 0 var(--border);}
+.home-card .hc-icon{font-size:28px;margin-bottom:4px;}
+.home-card .hc-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;font-family:Georgia,'Hiragino Mincho ProN',serif;}
+.home-card .hc-stat{font-size:11px;color:var(--text-muted);font-family:'SFMono-Regular',ui-monospace,Menlo,monospace;}
+/* ── Home summary ── */
+.hs-greeting{font-size:18px;font-weight:700;font-family:Georgia,'Hiragino Mincho ProN',serif;margin-bottom:12px;display:flex;align-items:baseline;gap:10px;}
+.hs-date{font-size:12px;color:var(--text-muted);font-weight:400;font-family:'SFMono-Regular',ui-monospace,Menlo,monospace;}
+.hs-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:6px 14px;margin-bottom:16px;box-shadow:var(--shadow-card);}
+.hs-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.hs-row:last-child{border-bottom:none;}
+.hs-icon{font-size:18px;line-height:1.4;flex-shrink:0;}
+.hs-body{flex:1;min-width:0;}
+.hs-title{font-size:13px;font-weight:700;color:var(--text);}
+.hs-detail{font-size:11px;color:var(--text-muted);margin-top:2px;line-height:1.5;}
+.hs-urgent .hs-title{color:#D93025;}
+.hs-empty .hs-title{color:var(--text-muted);font-weight:400;}
+/* ── Global search ── */
+.home-search{margin-bottom:16px;}
+.home-search input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:14px;font-family:inherit;color:var(--text);background:var(--surface);outline:none;box-shadow:var(--shadow-card);}
+.home-search input:focus{border-color:var(--accent);}
+.gs-count{font-size:11px;color:var(--text-muted);margin-bottom:8px;font-family:'SFMono-Regular',ui-monospace,Menlo,monospace;}
+.gs-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer;transition:all .12s;box-shadow:1px 1px 0 var(--border);}
+.gs-item:hover{transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--border);}
+.gs-item:active{transform:translate(1px,1px);box-shadow:0 0 0 var(--border);}
+.gs-icon{font-size:16px;flex-shrink:0;line-height:1.4;}
+.gs-body{flex:1;min-width:0;}
+.gs-title{font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gs-meta{display:flex;gap:8px;margin-top:2px;align-items:center;}
+.gs-room{font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-light);padding:1px 8px;border-radius:999px;flex-shrink:0;}
+.gs-sub{font-size:11px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gs-empty{font-size:13px;color:var(--text-muted);text-align:center;padding:24px 0;}
+.home-card.hc-accent{border-color:var(--accent);background:var(--accent-light);}
+/* ── More menu ── */
+.more-menu{position:fixed;bottom:60px;right:8px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);box-shadow:3px 3px 0 var(--border);z-index:101;min-width:160px;padding:6px;display:none;}
+.more-menu.open{display:block;}
+.more-menu button{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:none;background:none;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text);font-family:inherit;text-align:left;}
+.more-menu button:hover{background:var(--bg);}.more-menu button.active{color:var(--accent);font-weight:600;}
+.app{padding-bottom:72px !important;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <h1>キング構想部屋</h1>
+  <span id="today-date"></span>
+</header>
+
+<!-- プロフィールバー -->
+<div id="profile-bar" style="margin-bottom:1rem;"></div>
+
+<!-- ホーム -->
+<div class="pane active" id="pane-home">
+  <div class="home-search">
+    <input type="text" id="home-search-input" placeholder="🔍 すべての部屋から検索…" oninput="runGlobalSearch(this.value)">
+  </div>
+  <div id="home-search-results"></div>
+  <div id="home-summary"></div>
+  <div class="home-grid" id="home-grid"></div>
+</div>
+
+<div class="tabs" id="tabs-bar" style="display:none;"></div>
+<div class="tabs" id="sns-tabs-bar" style="display:none;overflow-x:auto;flex-wrap:nowrap;"></div>
+
+<!-- ナレッジ創出（準備中） -->
+<div class="pane" id="pane-knowledge">
+  <div class="tabs" id="kn-subtabs" style="margin-bottom:14px;">
+    <button class="subtab tab on" data-kn="memo" onclick="knSub('memo')">メモ</button>
+    <button class="subtab tab" data-kn="log" onclick="knSub('log')">ログ</button>
+    <button class="subtab tab" data-kn="link" onclick="knSub('link')">リンク</button>
+  </div>
+
+  <!-- メモ -->
+  <div id="kn-memo">
+    <div class="card">
+      <div class="field-label">メモを追加</div>
+      <input type="text" id="kn-memo-title" placeholder="タイトル" style="margin-bottom:8px;">
+      <textarea id="kn-memo-body" placeholder="内容" rows="3" style="width:100%;margin-bottom:8px;resize:vertical;"></textarea>
+      <input type="text" id="kn-memo-tags" placeholder="タグ（カンマ区切り: 例 企画,SNS）" style="margin-bottom:10px;">
+      <button class="btn-secondary" onclick="knAddMemo()">追加</button>
+      <p style="font-size:11px;color:var(--text-hint);margin:8px 0 0;line-height:1.5;">各メモの「🤖 AIで深掘り」で観点（発展アイデア/深掘り質問/批判的レビュー/実行プラン/類似事例）と深さを選んで生成できます。設定タブでGeminiキーの登録と、速さ/賢さの傾向を選べます。</p>
+    </div>
+    <div class="card">
+      <input type="text" id="kn-memo-search" placeholder="🔍 キーワード・タグで検索" oninput="knRenderMemo()" style="margin-bottom:6px;">
+      <div id="kn-memo-tagbar" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;"></div>
+      <div class="empty" id="kn-memo-empty">メモがまだありません</div>
+      <div id="kn-memo-list"></div>
+    </div>
+  </div>
+
+  <!-- ログ -->
+  <div id="kn-log" style="display:none;">
+    <div class="card">
+      <div class="field-label">気づき・アイデアを記録</div>
+      <textarea id="kn-log-body" placeholder="今日気づいたこと、思いついたこと…" rows="3" style="width:100%;margin-bottom:10px;resize:vertical;"></textarea>
+      <button class="btn-secondary" onclick="knAddLog()">記録する</button>
+    </div>
+    <div class="card">
+      <div class="field-label">タイムライン</div>
+      <div class="empty" id="kn-log-empty">まだ記録がありません</div>
+      <div id="kn-log-list"></div>
+    </div>
+  </div>
+
+  <!-- リンク -->
+  <div id="kn-link" style="display:none;">
+    <div class="card">
+      <div class="field-label">リンクを保存</div>
+      <input type="text" id="kn-link-url" placeholder="URL（https://…）" style="margin-bottom:8px;">
+      <input type="text" id="kn-link-title" placeholder="タイトル・メモ（任意）" style="margin-bottom:8px;">
+      <input type="text" id="kn-link-tags" placeholder="タグ（カンマ区切り）" style="margin-bottom:10px;">
+      <button class="btn-secondary" onclick="knAddLink()">保存</button>
+    </div>
+    <div class="card">
+      <input type="text" id="kn-link-search" placeholder="🔍 検索" oninput="knRenderLink()" style="margin-bottom:10px;">
+      <div class="empty" id="kn-link-empty">リンクがまだありません</div>
+      <div id="kn-link-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 議事録作成（準備中） -->
+<div class="pane" id="pane-minutes">
+  <div class="card" style="text-align:center;padding:48px 20px;">
+    <div style="font-size:36px;margin-bottom:8px;">📝</div>
+    <div style="font-weight:700;font-size:16px;margin-bottom:4px;">議事録作成</div>
+    <div style="color:var(--text-muted);font-size:13px;">準備中</div>
+  </div>
+</div>
+
+<!-- 今日 -->
+<div class="pane active" id="pane-today">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div class="field-label" style="margin-bottom:0;">今日の稼働時間</div>
+      <button class="btn-secondary" onclick="addTodayBlock()" style="padding:3px 10px;font-size:12px;">＋ブロック追加</button>
+    </div>
+    <div id="today-blocks-list"></div>
+    <div id="wh-summary" style="margin-top:8px;"></div>
+    <div class="timeline-wrap" id="timeline-wrap" style="margin-top:12px;"></div>
+    <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px;">
+    <div class="field-label">今日のエネルギーレベル</div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-size:11px;color:var(--text-hint);flex-shrink:0;">低</span>
+      <div class="energy-grid" style="grid-template-columns:repeat(10,1fr);flex:1;">
+        <button class="ebtn" id="eb1"  onclick="setE(1)"><strong>1</strong></button>
+        <button class="ebtn" id="eb2"  onclick="setE(2)"><strong>2</strong></button>
+        <button class="ebtn" id="eb3"  onclick="setE(3)"><strong>3</strong></button>
+        <button class="ebtn" id="eb4"  onclick="setE(4)"><strong>4</strong></button>
+        <button class="ebtn" id="eb5"  onclick="setE(5)"><strong>5</strong></button>
+        <button class="ebtn" id="eb6"  onclick="setE(6)"><strong>6</strong></button>
+        <button class="ebtn" id="eb7"  onclick="setE(7)"><strong>7</strong></button>
+        <button class="ebtn" id="eb8"  onclick="setE(8)"><strong>8</strong></button>
+        <button class="ebtn" id="eb9"  onclick="setE(9)"><strong>9</strong></button>
+        <button class="ebtn" id="eb10" onclick="setE(10)"><strong>10</strong></button>
+      </div>
+      <span style="font-size:11px;color:var(--text-hint);flex-shrink:0;">高</span>
+    </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="field-label">今日やるタスクを選ぶ</div>
+    <div class="empty" id="today-tlist-empty">タスクが登録されていません</div>
+    <div id="today-tlist"></div>
+    <div class="selected-count" id="selected-count" style="display:none;"></div>
+    <div id="goal-card" class="goal-card">
+      <div class="goal-card-header">
+        <span class="goal-card-icon">🎯</span>
+        <span class="goal-card-title">今日の目標タスク</span>
+      </div>
+      <div class="goal-card-desc">今日やるタスクを選ぶと、優先順位1〜3位が自動で入ります（1位+3pt／2位+2pt／3位+1pt）。エネルギーレベルを設定すると、より正確な順位に並べ替わります。追加・削除も可能です。</div>
+      <div class="goal-empty" id="goal-list-empty">まだ目標タスクがありません</div>
+      <div id="goal-list"></div>
+      <div class="goal-add-title">タップして目標タスクに追加:</div>
+      <div id="goal-add-list" class="goal-add-list"></div>
+    </div>
+  </div>
+  <button class="btn-primary" onclick="goResult()">優先順位を出す →</button>
+</div>
+
+<!-- タイムアタック -->
+<div class="pane" id="pane-timeattack">
+  <div id="ta-home">
+    <div class="card">
+      <div class="field-label">タイムアタックするタスクを選ぶ</div>
+      <div class="empty" id="ta-empty">タスクが登録されていません（「タスク」タブで追加）</div>
+      <div id="ta-picklist"></div>
+      <div id="ta-selected-card" style="display:none;border-top:1px solid var(--border);margin-top:12px;padding-top:12px;">
+        <div class="field-label">実行順（上から順に挑戦）</div>
+        <div id="ta-order"></div>
+        <button class="btn-primary" onclick="taStart()" style="margin-top:8px;">▶ スタート（打刻）</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ta-run" style="display:none;">
+    <div class="card" style="text-align:center;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:10px;">
+        <span id="ta-progress">タスク 1 / 1</span>
+        <span>全体 <b id="ta-total" style="color:var(--text);">0:00</b> ・ <span id="ta-points">0</span>pt</span>
+      </div>
+      <div id="ta-taskname" style="font-size:18px;font-weight:700;margin-bottom:14px;">—</div>
+      <div id="ta-remain" style="font-size:60px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">0:00</div>
+      <div id="ta-status" style="font-size:13px;margin-top:8px;color:var(--accent3);">獲得見込み +0</div>
+      <div style="height:6px;background:var(--border);border-radius:999px;overflow:hidden;margin:16px 0;"><div id="ta-bar" style="height:100%;width:0;background:linear-gradient(135deg,var(--accent),var(--accent2));"></div></div>
+      <button class="btn-primary" onclick="taComplete()">✓ 完了して次へ</button>
+      <button class="btn-secondary" onclick="taAbort()" style="width:100%;margin-top:8px;background:none;color:var(--text-muted);">中断</button>
+    </div>
+  </div>
+
+  <div id="ta-result" style="display:none;">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:12px;color:var(--text-muted);" id="ta-result-title">結果</div>
+      <div style="font-size:42px;font-weight:800;margin:2px 0;"><span id="ta-result-pts">0</span><span style="font-size:18px;color:var(--text-muted);font-weight:400;">pt</span></div>
+      <div style="font-size:12px;color:var(--text-muted);" id="ta-result-breakdown"></div>
+    </div>
+    <div class="card">
+      <div id="ta-result-rows"></div>
+    </div>
+    <button class="btn-primary" onclick="taStart()">↻ もう一度</button>
+    <button class="btn-secondary" onclick="taBackHome()" style="width:100%;margin-top:8px;">タスク選択に戻る</button>
+  </div>
+</div>
+
+<!-- インク日記 -->
+<div class="pane" id="pane-inkdiary">
+
+<div class="wrap">
+  <header class="top"><div><div class="brand">インク日記<span class="dot">.</span></div><div class="tagline">伸ばした分だけ、書ける。</div></div><div class="today-lbl" id="today"></div></header>
+
+  <section class="card"><h2>メンバー</h2>
+    <div class="chip-row" id="personRow"></div>
+    <div class="add-form hidden" id="personAddForm"><input class="tin" id="newPersonName" placeholder="名前（例：田中）"><div class="add-actions"><button class="primary" id="confirmAddPerson">追加する</button><button class="ghost" id="cancelAddPerson">キャンセル</button></div></div>
+    <div class="empty-note" id="personEmpty">まだメンバーがいません。<br><br><button class="primary" id="firstAddPerson">＋ メンバーを追加</button></div>
+    <div id="personBody" class="hidden">
+      <div class="foot" style="margin-top:14px"><input class="tin" id="p_name" placeholder="名前" style="flex:1"><button class="ghost" id="movePerson">↕ 順番</button><button class="ghost danger" id="delPerson">削除</button></div>
+      <div class="sub"><h3>アカウント</h3><div class="chip-row" id="acctRow"></div>
+        <div class="add-form hidden" id="acctAddForm"><input class="tin" id="newAcctName" placeholder="@my_account"><div class="add-actions"><button class="primary" id="confirmAddAcct">追加する</button><button class="ghost" id="cancelAddAcct">キャンセル</button></div></div>
+        <div class="empty-note hidden" id="acctEmpty">「＋追加」からアカウントを登録してください。</div>
+        <div id="acctForm" class="hidden" style="margin-top:12px">
+          <div class="grid2"><div class="field full"><label>アカウント名</label><input class="tin" id="a_name" placeholder="@my_account"></div><div class="field"><label>現在のフォロー中</label><input class="tin mono" id="a_following" type="number" inputmode="numeric" min="0" value="0"></div><div class="field"><label>現在のフォロワー</label><input class="tin mono" id="a_followers" type="number" inputmode="numeric" min="0" value="0"></div></div>
+          <div class="foot"><div class="note">この数字が基準値です。反映時に自動更新されます。</div><button class="ghost danger" id="delAcct">削除</button></div>
+        </div>
+      </div>
+      <details class="set"><summary>⚙ このメンバーの文字数設定</summary>
+        <div class="set-grid"><div class="field"><label>ベース文字数</label><input id="s_base" type="number" min="0" value="20"></div><div class="field"><label>フォロー1件</label><input id="s_follow" type="number" min="0" value="1"></div><div class="field"><label>フォロバ1件</label><input id="s_fb" type="number" min="0" value="2"></div></div>
+        <div class="formula" id="formulaText"></div>
+        <div class="info-box">ベース文字数: フォロー施策をしなかった日でも書ける最低文字数です。0にするとフォロー0の日は日記が書けません。</div>
+      </details>
+      <details class="set"><summary>⚙ データ管理</summary>
+        <div class="io-row"><button class="ghost" id="exportBtn">📤 エクスポート</button><button class="ghost" id="importBtn">📥 インポート</button></div>
+        <input type="file" id="importFile" accept=".json" style="display:none">
+        <div class="info-box" style="margin-top:8px">エクスポートでJSONファイルとして全データをバックアップできます。端末変更時やデータ消失に備えて定期的に保存してください。</div>
+        <button class="reset" id="reset">すべてのデータを消去</button>
+        <div id="envWarn"></div>
+      </details>
+    </div>
+  </section>
+
+  <div class="nav hidden" id="mainNav"><button id="navToday" class="on">きょう</button><button id="navCal">カレンダー</button></div>
+
+  <div class="view on" id="viewToday">
+    <section class="card hidden" id="dailyCard"><h2>今日のフォロー施策</h2>
+      <div class="acct-ind hidden" id="acctInd">📱 <span id="acctIndName"></span></div>
+      <div class="tabs"><button id="tabManual" class="on">手動で入力</button><button id="tabShot">スクショで読み取り</button></div>
+      <div class="pane on" id="paneManual">
+        <div class="ledger"><div class="field"><label>今日のフォロー増加数</label><div class="stepper"><button data-step="follows" data-d="-1">−</button><input id="follows" type="number" inputmode="numeric" min="0" value="0"><button data-step="follows" data-d="1">＋</button></div></div><div class="field"><label>今日のフォロバ増加数</label><div class="stepper"><button data-step="followbacks" data-d="-1">−</button><input id="followbacks" type="number" inputmode="numeric" min="0" value="0"><button data-step="followbacks" data-d="1">＋</button></div></div></div>
+        <div class="info-box">⚠ フォロワー増加にはオーガニック流入も含まれるため、フォロバ率は参考値です。フォロー解除があった場合はマイナス分を手動で調整してください。</div>
+      </div>
+      <div class="pane" id="paneShot">
+        <div class="shots"><label class="shot" id="shotBefore"><span class="tag">フォロー前（任意）</span><span class="plus">＋</span><span class="hint">作業前のスクショ</span><input type="file" accept="image/*" data-slot="before"></label><label class="shot" id="shotAfter"><span class="tag">フォロー後</span><span class="plus">＋</span><span class="hint">作業後のスクショ</span><input type="file" accept="image/*" data-slot="after"></label></div>
+        <div class="delta" id="delta"></div><div class="shot-err" id="shotErr"></div>
+        <div class="privacy-box">🔒 スクショはAI(Claude API)に送信して数値を読み取ります。アカウント名やフォロワー数がAnthropicのサーバーに送られます。この機能はClaude.ai内でのみ動作し、外部デプロイ(Vercel等)では利用できません。</div>
+      </div>
+      <div class="totals" id="totals"></div>
+    </section>
+    <section class="card gauge-card hidden" id="gaugeCard"><div class="gauge-num"><span class="big" id="remaining">0</span><span class="of">/ <span id="budget">0</span> 文字</span></div><div class="gauge-label">今日書ける文字数（全アカウント合計から計算）</div><div class="well" id="well"><div class="fill" id="fill"></div></div></section>
+    <section class="card hidden" id="diaryCard"><h2>今日の日記 <span id="diaryWho" style="text-transform:none;letter-spacing:0"></span></h2><div class="paper"><textarea id="diary" placeholder="今日あったこと…"></textarea><div class="meta"><span class="count" id="count">残り 0 文字</span><button class="save" id="save">保存する</button></div></div></section>
+  </div>
+
+  <div class="view" id="viewCal">
+    <section class="card hidden" id="sumCard"><h2>これまでの記録 <span id="sumWho" style="text-transform:none;letter-spacing:0"></span></h2><div class="sum"><div><div class="k" id="sumDays">0</div><div class="v">日</div></div><div><div class="k" id="sumFollow">0</div><div class="v">総フォロー</div></div><div><div class="k" id="sumFb">0</div><div class="v">総フォロバ</div></div><div><div class="k" id="sumRate">—</div><div class="v">通算率</div></div></div></section>
+    <section class="card hidden" id="badgeCard"><h2>バッジ</h2><div class="streak-line"><div class="streak-box"><div class="n" id="streakNow">0</div><div class="l">連続記録（日）</div></div><div class="streak-box"><div class="n" id="streakBest">0</div><div class="l">最長連続（日）</div></div></div><div class="badge-count" id="badgeCount"></div><div class="badge-grid" id="badgeGrid"></div></section>
+    <section class="card hidden" id="histCard"><h2>日記カレンダー</h2><div class="cal-head"><span class="ym" id="calYM"></span><div class="cal-nav"><button id="calPrev">‹</button><button id="calToday" style="width:auto;padding:0 10px;font-size:12px">今日</button><button id="calNext">›</button></div></div><div class="cal-grid" id="calGrid"></div><div class="detail" id="detail"><div class="d-head"><span class="d-date" id="dDate"></span><span class="d-len" id="dLen"></span></div><div class="d-stats-grid" id="dStatsGrid"></div><div class="d-paper" id="dText"></div><button class="d-edit-btn hidden" id="dEditBtn">✏️ この日の記録を編集する</button></div></section>
+  </div>
+</div>
+<div class="toast" id="ink-toast"></div>
+<div class="badge-toast" id="badgeToast"></div>
+
+
+</div>
+
+<!-- 実績 -->
+<div class="pane" id="pane-achieve">
+  <div class="card">
+    <div class="streak-display">
+      <span class="streak-fire">🔥</span>
+      <div>
+        <div style="display:flex;align-items:baseline;gap:4px;">
+          <span class="streak-num" id="ach-streak">0</span>
+          <span class="streak-label">日連続</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-hint);">最高 <span id="ach-best-streak">0</span>日</div>
+      </div>
+    </div>
+    <div class="ach-stat-grid">
+      <div class="ach-stat"><div class="ach-stat-val" id="ach-level">1</div><div class="ach-stat-label">レベル</div></div>
+      <div class="ach-stat"><div class="ach-stat-val" id="ach-points">0</div><div class="ach-stat-label">累計PT</div></div>
+      <div class="ach-stat"><div class="ach-stat-val" id="ach-total-done">0</div><div class="ach-stat-label">完了タスク数</div></div>
+    </div>
+    <div style="margin-bottom:4px;display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);">
+      <span id="ach-level-label">Lv.1</span><span id="ach-next-pt"></span>
+    </div>
+    <div class="level-bar-wrap"><div class="level-bar-fill" id="ach-level-bar" style="width:0%"></div></div>
+  </div>
+  <div class="card">
+    <div class="field-label" style="margin-bottom:8px;">マイコレクション</div>
+    <div class="collection-shelf" id="collection-shelf"></div>
+    <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="field-label" style="margin-bottom:0;">バッジ一覧</div>
+      <span style="font-size:11px;color:var(--text-muted);">解放済みをタップでコレクションに追加</span>
+    </div>
+    <div class="badge-grid" id="badge-grid"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="field-label" style="margin-bottom:8px;">ポイント履歴</div>
+    <div id="pt-history"></div>
+  </div>
+</div>
+
+<!-- 完了ポップアップ -->
+<div class="ach-popup" id="ach-popup" onclick="closeAchPopup()">
+  <div class="ach-popup-card" onclick="event.stopPropagation()">
+    <div class="ach-popup-icon" id="popup-icon">🎉</div>
+    <div class="ach-popup-title" id="popup-title">全タスク完了！</div>
+    <div class="ach-popup-sub" id="popup-sub"></div>
+    <button class="btn-secondary" onclick="closeAchPopup();if(window.xpQuickStart)window.xpQuickStart('task','');" style="width:100%;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;font-weight:700;">⭐ 今回のコツ・学びを残す</button>
+    <button class="btn-primary" onclick="closeAchPopup()" style="margin-top:0;">閉じる</button>
+  </div>
+</div>
+<div class="new-badge-toast" id="new-badge-toast"></div>
+
+
+<!-- 刺さり度チェッカー -->
+<div class="pane" id="pane-checker">
+<div class="wrap">
+
+  <div>
+    <div class="badge">PERSONA CHECK</div>
+    <h1>インスタ投稿 刺さり度チェッカー</h1>
+    <p class="lead">アカウントごとにターゲット像を登録して、投稿素材が何%刺さるかをAIが予測します。</p>
+  </div>
+
+  <!-- ① account + persona -->
+  <div class="card">
+    <div class="card-title">① アカウントとペルソナ</div>
+    <div class="label">アカウント(✎で名前を変更)</div>
+    <div class="acct-tabs" id="acctTabs"></div>
+
+    <div class="row-between">
+      <div class="label" style="margin-bottom:0" id="personaListLabel">このアカウントのペルソナ</div>
+      <button class="btn small" id="addPersonaBtn">+ 追加</button>
+    </div>
+    <div class="hint hidden" id="noPersonaMsg">このアカウントにはまだペルソナがありません。「+ 追加」から、狙いたい相手の情報を登録してください。</div>
+    <div class="persona-list" id="personaList"></div>
+
+    <div class="editor hidden" id="editor">
+      <div class="card-title" id="editorTitle">新しいペルソナ</div>
+
+      <div class="import-box">
+        <div class="label">AIで自動入力(任意)— 画像・PDF、URL、または文章の貼り付けから読み取れます</div>
+        <div class="import-row">
+          <label class="btn small" for="importFile">画像・PDFを選ぶ</label>
+          <input type="file" id="importFile" class="hidden"
+                 accept="image/png,image/jpeg,image/gif,image/webp,application/pdf">
+        </div>
+        <div class="import-row">
+          <input type="url" id="importUrl" placeholder="https://(ペルソナ資料・ターゲット情報のあるページURL)">
+          <button class="btn small" id="importUrlBtn">URLから読み取る</button>
+        </div>
+        <textarea id="importText" rows="4" style="margin-bottom:8px; background:#fff"
+          placeholder="ここに文章を貼り付け → 下のボタンで分析。&#10;例:アンケートの自由回答、顧客インタビューのメモ、商品レビュー、DMやコメントでよく来る質問、既存資料の文章など(複数人分の断片でもOK。共通パターンから1人のペルソナ像に統合します)"></textarea>
+        <div class="import-row">
+          <button class="btn small" id="importTextBtn">貼り付けた文章から分析する</button>
+        </div>
+        <div class="hint hidden" id="importStatus"></div>
+      </div>
+
+      <div class="label">ペルソナ名</div>
+      <textarea id="e_name" rows="1" placeholder="例:美容感度の高い20代OL・さきさん"></textarea>
+      <div class="label">基本属性(年齢・性別・職業・居住地など)</div>
+      <textarea id="e_basic" rows="2" placeholder="例:26歳女性、都内在住、事務職、一人暮らし、月の美容予算1.5万円"></textarea>
+      <div class="label">興味・関心</div>
+      <textarea id="e_interests" rows="2" placeholder="例:韓国コスメ、時短メイク、カフェ巡り、推し活"></textarea>
+      <div class="label">悩み・課題</div>
+      <textarea id="e_pains" rows="2" placeholder="例:朝の準備に時間をかけられない、毛穴が気になる、情報が多すぎて選べない"></textarea>
+      <div class="label">Instagramの使い方</div>
+      <textarea id="e_ig" rows="2" placeholder="例:通勤中と寝る前に閲覧。リール中心。役立つ投稿は保存。広告っぽい投稿はスルー"></textarea>
+      <div class="row-between" style="margin-bottom:6px">
+        <div class="label" style="margin-bottom:0">深掘り分析(診断のたびにAIが参照します)</div>
+        <button class="btn small" id="deepBtn">AIで深掘りを生成</button>
+      </div>
+      <textarea id="e_deep" rows="5" placeholder="価値観、購買の決め手、刺さる言葉・NGな表現、保存やフォローの基準など。上のボタンでAIに生成させて、手で直すのがおすすめです"></textarea>
+      <div class="hint hidden" id="deepStatus"></div>
+      <div class="editor-actions">
+        <button class="btn small" id="cancelEditBtn">キャンセル</button>
+        <button class="btn small primary" id="savePersonaBtn">保存する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② winners -->
+  <div class="card">
+    <div class="row-between">
+      <div class="card-title" style="margin-bottom:0" id="winnerTitle">② 伸びた投稿の記録</div>
+      <button class="btn small" id="addWinnerBtn">+ 追加</button>
+    </div>
+    <div class="hint" style="margin:0 0 10px">このアカウントで実際に伸びた投稿を登録しておくと、AIが「勝ちパターン」として診断の基準に使います。</div>
+    <div class="hint hidden" id="noWinnerMsg">まだ記録がありません。保存数・リーチが良かった投稿を登録しましょう。</div>
+    <div id="winnerList"></div>
+
+    <div class="editor hidden" id="winnerEditor">
+      <div class="card-title" id="winnerEditorTitle">伸びた投稿を追加</div>
+
+      <div class="import-box">
+        <div class="label">スクショ・リンクから自動入力(任意)</div>
+        <div class="import-row">
+          <label class="btn small" for="w_shotInput">スクショを分析する(インサイト+投稿画面・複数可)</label>
+          <input type="file" id="w_shotInput" class="hidden" multiple
+                 accept="image/png,image/jpeg,image/webp,image/gif">
+        </div>
+        <div class="import-row">
+          <input type="url" id="w_url" placeholder="https://www.instagram.com/p/…(公開投稿のURL)">
+          <button class="btn small" id="w_urlBtn">URLから読み取る</button>
+        </div>
+        <div class="hint hidden" id="w_urlStatus"></div>
+      </div>
+
+      <div class="label">投稿タイプ</div>
+      <div class="type-toggle">
+        <button class="type-btn active" data-wtype="feed">▦ フィード投稿</button>
+        <button class="type-btn" data-wtype="reel">▶ リール</button>
+      </div>
+      <div class="label">① 投稿日時</div>
+      <input type="datetime-local" id="w_date" class="w-input">
+      <div class="metric-grid">
+        <div>
+          <div class="label">② ビュー数</div>
+          <input type="number" id="w_views" class="w-input" min="0" placeholder="例: 52000">
+        </div>
+        <div>
+          <div class="label">③ リーチ数</div>
+          <input type="number" id="w_reach" class="w-input" min="0" placeholder="例: 48000">
+        </div>
+        <div>
+          <div class="label">④ エンゲージメント数</div>
+          <input type="number" id="w_eng" class="w-input" min="0" placeholder="例: 2100">
+        </div>
+        <div>
+          <div class="label">⑤ 保存数</div>
+          <input type="number" id="w_saves" class="w-input" min="0" placeholder="例: 520">
+        </div>
+      </div>
+      <div class="label">投稿画像(任意・最大5枚。保存用に自動で縮小されます)</div>
+      <div class="thumb-grid" id="wThumbGrid">
+        <label class="thumb add" for="wImgInput">+<br><span>画像を追加</span></label>
+        <input type="file" id="wImgInput" class="hidden" multiple
+               accept="image/png,image/jpeg,image/gif,image/webp">
+      </div>
+      <div class="hint hidden" id="wImgHint" style="margin:-6px 0 12px"></div>
+      <div class="label">投稿の内容(キャプション/画像・動画の内容)</div>
+      <textarea id="w_content" rows="4" placeholder="キャプション全文、画像に写っているもの、リールの構成(冒頭テロップ→展開→締め)など"></textarea>
+      <div class="label">ペルソナに刺さった理由(スクショ読み取りでAIが分析します/手修正OK)</div>
+      <textarea id="w_why" rows="2" placeholder="例:ビフォーアフターの1枚目が「毛穴」の悩みに直撃。数字入りの実証がこのペルソナの信頼基準に合致"></textarea>
+      <div class="label">気づきメモ(任意)</div>
+      <textarea id="w_result" rows="2" placeholder="例:ビフォーアフター型が特に保存されやすい。20時台投稿が伸びる"></textarea>
+      <div class="editor-actions">
+        <button class="btn small" id="cancelWinnerBtn">キャンセル</button>
+        <button class="btn small primary" id="saveWinnerBtn">保存する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ post -->
+  <div class="card">
+    <div class="card-title">③ 投稿素材</div>
+
+    <div class="import-box">
+      <div class="label">投稿リンクから自動入力(任意)— タイプ・キャプション・内容の概要を読み取ります</div>
+      <div class="import-row">
+        <input type="url" id="postUrl" placeholder="https://www.instagram.com/reel/…(公開投稿のURL)">
+        <button class="btn small" id="postUrlBtn">読み取る</button>
+      </div>
+      <div class="hint hidden" id="postUrlStatus"></div>
+    </div>
+
+    <div class="label">投稿タイプ</div>
+    <div class="type-toggle">
+      <button class="type-btn active" data-type="feed">▦ フィード投稿</button>
+      <button class="type-btn" data-type="reel">▶ リール</button>
+    </div>
+    <div class="label">キャプション(ハッシュタグもそのまま貼り付けOK)</div>
+    <textarea id="caption" rows="7" placeholder="投稿予定の本文をここに貼り付け…
+
+#ハッシュタグ #もそのまま"></textarea>
+
+    <div class="label" id="postImgLabel">投稿画像(任意・最大5枚。1枚目から順にAIが見ます)</div>
+    <div class="thumb-grid" id="thumbGrid">
+      <label class="thumb add" for="postImgInput">+<br><span>画像を追加</span></label>
+      <input type="file" id="postImgInput" class="hidden" multiple
+             accept="image/png,image/jpeg,image/gif,image/webp">
+    </div>
+    <div class="hint hidden" id="postImgHint" style="margin:-6px 0 12px"></div>
+
+    <div class="label" id="visualLabel">画像の内容(任意)</div>
+    <textarea id="visual" rows="3" placeholder="例:1枚目はビフォーアフター比較、2〜10枚目で手順を解説するカルーセル"></textarea>
+    <div class="reel-note hidden" id="reelNote">リールは動画の構成(冒頭の映像・テロップ・展開・尺)が評価の中心です。入力すると精度が大きく上がります。</div>
+    <div class="center" style="margin-top:8px">
+      <button class="btn primary" id="analyzeBtn" disabled>刺さり度を診断する</button>
+      <div class="hint hidden" id="needPersonaHint">先にこのアカウントにペルソナを1件登録してください</div>
+    </div>
+  </div>
+
+  <!-- error -->
+  <div class="card hidden" id="errCard" style="border-color:var(--danger)">
+    <div class="err" id="errMsg"></div>
+  </div>
+
+  <!-- ③ result -->
+  <div class="card hidden" id="resultCard">
+    <div class="card-title" style="margin-bottom:4px">④ 診断結果</div>
+    <div class="sub-note" id="resultSub"></div>
+
+    <div class="ring-wrap">
+      <svg width="200" height="200" viewBox="0 0 200 200">
+        <defs>
+          <linearGradient id="igGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#F58529"/>
+            <stop offset="50%" stop-color="#DD2A7B"/>
+            <stop offset="100%" stop-color="#8134AF"/>
+          </linearGradient>
+        </defs>
+        <circle cx="100" cy="100" r="84" fill="none" stroke="#E5E7EB" stroke-width="12"/>
+        <circle id="ringFg" cx="100" cy="100" r="84" fill="none" stroke="url(#igGrad)"
+                stroke-width="12" stroke-linecap="round"
+                stroke-dasharray="0 528" transform="rotate(-90 100 100)"/>
+      </svg>
+      <div class="ring-num">
+        <div class="n"><span id="scoreNum">0</span><span>%</span></div>
+        <div class="t">刺さり度</div>
+      </div>
+    </div>
+
+    <div class="bubble-row hidden" id="bubbleRow">
+      <span class="avatar" id="bubbleAvatar">?</span>
+      <div class="bubble" id="bubbleText"></div>
+    </div>
+
+    <div class="mt20" id="axesBox"></div>
+
+    <div class="mt20">
+      <div class="label">良い点</div>
+      <div id="goodBox"></div>
+      <div style="height:12px"></div>
+      <div class="label">改善提案</div>
+      <div id="improveBox"></div>
+    </div>
+
+    <div class="mt20 hidden" id="rewriteBox">
+      <div class="label" id="rewriteLabel">書き直し案</div>
+      <div class="rewrite" id="rewriteText"></div>
+      <div style="margin-top:10px; text-align:right">
+        <button class="btn small hidden" id="applyRewriteBtn">この案をキャプション欄に反映</button>
+      </div>
+    </div>
+    <div style="margin-top:12px;text-align:center;">
+      <button class="btn small" onclick="if(window.pcQuickAdd){window.pcQuickAdd(document.getElementById('caption').value.split('\n')[0]||'診断した投稿');}">📅 この投稿を投稿カレンダーに追加</button>
+    </div>
+  </div>
+
+  <p class="footer">スコアはAIによる予測であり、実際のエンゲージメントを保証するものではありません。</p>
+</div>
+</div>
+
+<!-- 経験値 -->
+<div class="pane" id="pane-xp">
+  <div style="margin-bottom:12px;">
+    <div style="font-size:18px;font-weight:800;font-family:Georgia,'Hiragino Mincho ProN',serif;">⭐ 経験値</div>
+    <div style="font-size:11px;color:var(--text-muted);">やってみて得たコツ・学び・次に活かせることを貯める</div>
+  </div>
+
+  <div class="card">
+    <div class="field-label">経験値を記録</div>
+    <div id="xp-type-toggle" style="display:flex;gap:6px;margin-bottom:8px;"></div>
+    <input type="text" id="xp-context" placeholder="何について？（タスク名・施策名など）" style="margin-bottom:8px;">
+    <textarea id="xp-learn" placeholder="コツ・学んだこと・うまくいった点" rows="2" style="width:100%;margin-bottom:8px;resize:vertical;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;font-size:13px;color:var(--text);font-family:inherit;outline:none;"></textarea>
+    <textarea id="xp-next" placeholder="次に活かせること・改善点（任意）" rows="2" style="width:100%;margin-bottom:8px;resize:vertical;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;font-size:13px;color:var(--text);font-family:inherit;outline:none;"></textarea>
+    <input type="text" id="xp-tags" placeholder="タグ（カンマ区切り: 例 時短,フォロー）" style="margin-bottom:10px;">
+    <button class="btn-secondary" onclick="xpAdd()">記録する</button>
+  </div>
+
+  <div class="card" style="padding:10px 12px;">
+    <input type="text" id="xp-search" placeholder="🔍 キーワード・タグで検索" oninput="xpRender()" style="margin-bottom:8px;">
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;" id="xp-cat-filters"></div>
+    <div id="xp-tagbar" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;"></div>
+    <div id="xp-stats" style="font-size:12px;color:var(--text-muted);margin-bottom:8px;"></div>
+    <div class="empty" id="xp-list-empty">まだ経験値がありません 🌱 タスクや施策の後に振り返りを残しましょう</div>
+    <div id="xp-list"></div>
+  </div>
+</div>
+
+<!-- ネタ帳・スワイプファイル -->
+<div class="pane" id="pane-swipe">
+  <div style="margin-bottom:12px;">
+    <div style="font-size:18px;font-weight:800;font-family:Georgia,'Hiragino Mincho ProN',serif;">🗂 ネタ帳・スワイプ</div>
+    <div style="font-size:11px;color:var(--text-muted);">参考投稿・バズ事例・刺さった表現をストック</div>
+  </div>
+
+  <div class="card">
+    <div class="field-label">ネタを追加</div>
+    <input type="text" id="sw-title" placeholder="タイトル・ひとことメモ" style="margin-bottom:8px;">
+    <input type="text" id="sw-url" placeholder="参考URL（任意）" style="margin-bottom:8px;">
+    <textarea id="sw-note" placeholder="なぜ良いと思った？どう活かす？（任意）" rows="2" style="width:100%;margin-bottom:8px;resize:vertical;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;font-size:13px;color:var(--text);font-family:inherit;outline:none;"></textarea>
+    <div style="display:flex;gap:6px;margin-bottom:8px;" id="sw-cat-toggle"></div>
+    <input type="text" id="sw-tags" placeholder="タグ（カンマ区切り: 例 フック,構成）" style="margin-bottom:10px;">
+    <button class="btn-secondary" onclick="swAdd()">追加</button>
+  </div>
+
+  <div class="card" style="padding:10px 12px;">
+    <input type="text" id="sw-search" placeholder="🔍 キーワード・タグで検索" oninput="swRender()" style="margin-bottom:8px;">
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;" id="sw-cat-filters"></div>
+    <div id="sw-tagbar" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;"></div>
+    <div id="sw-stats" style="font-size:12px;color:var(--text-muted);margin-bottom:8px;"></div>
+    <div class="empty" id="sw-list-empty">まだネタがありません 🌱</div>
+    <div id="sw-list"></div>
+  </div>
+</div>
+
+<!-- 目標・KPI -->
+<div class="pane" id="pane-kpi">
+  <div style="margin-bottom:12px;">
+    <div style="font-size:18px;font-weight:800;font-family:Georgia,'Hiragino Mincho ProN',serif;">🎯 目標・KPI</div>
+    <div style="font-size:11px;color:var(--text-muted);">今月の目標を立てて達成度を追う</div>
+  </div>
+
+  <div class="card">
+    <div class="field-label">目標を追加</div>
+    <input type="text" id="kpi-title" placeholder="目標名（例: 新規フォロワー）" style="margin-bottom:8px;">
+    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+      <span style="font-size:12px;color:var(--text-muted);flex-shrink:0;">種別</span>
+      <select id="kpi-type" style="flex:1;" onchange="kpiOnTypeChange()">
+        <option value="follow">フォロー増加数（自動集計）</option>
+        <option value="posts">投稿本数（自動集計）</option>
+        <option value="manual">手動で数値を入力</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center;">
+      <span style="font-size:12px;color:var(--text-muted);flex-shrink:0;">目標値</span>
+      <input type="number" id="kpi-target" min="1" placeholder="例: 100" style="flex:1;">
+      <input type="text" id="kpi-unit" placeholder="単位" value="件" style="width:70px;">
+    </div>
+    <button class="btn-secondary" onclick="kpiAdd()">追加</button>
+  </div>
+
+  <div class="card" style="padding:10px 12px;">
+    <div class="field-label" id="kpi-month-label">今月の目標</div>
+    <div class="empty" id="kpi-list-empty">まだ目標がありません</div>
+    <div id="kpi-list"></div>
+  </div>
+</div>
+
+<!-- 成長ダッシュボード -->
+<div class="pane" id="pane-dashboard">
+  <div style="margin-bottom:12px;">
+    <div style="font-size:18px;font-weight:800;font-family:Georgia,'Hiragino Mincho ProN',serif;">📈 成長ダッシュボード</div>
+    <div style="font-size:11px;color:var(--text-muted);">フォロワー推移と投稿成果をまとめて確認</div>
+  </div>
+  <div id="dash-content"></div>
+</div>
+
+<!-- 投稿カレンダー -->
+<div class="pane" id="pane-postcal">
+  <div class="card">
+    <div class="field-label">📅 投稿予定を追加</div>
+    <input type="text" id="pc-title" placeholder="投稿タイトル・内容メモ" style="margin-bottom:8px;">
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <input type="date" id="pc-date" style="flex:1;">
+      <input type="time" id="pc-time" style="flex:1;">
+    </div>
+    <div id="pc-type-toggle" style="display:flex;gap:6px;margin-bottom:8px;"></div>
+    <div class="field-label">ステータス</div>
+    <div id="pc-status-toggle" style="display:flex;gap:6px;margin-bottom:10px;"></div>
+    <button class="btn-secondary" onclick="pcAdd()">追加</button>
+  </div>
+
+  <div class="card">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="pcMove(-1)">‹</button>
+      <span class="cal-title" id="pc-cal-title"></span>
+      <button class="cal-nav" onclick="pcMove(1)">›</button>
+    </div>
+    <div class="cal-grid" id="pc-dow-row"></div>
+    <div class="cal-grid" style="margin-top:2px;" id="pc-cal-body"></div>
+  </div>
+
+  <div class="card" style="padding:10px 12px;">
+    <div class="field-label" id="pc-list-title">今後の投稿予定</div>
+    <div class="empty" id="pc-list-empty">投稿予定がありません</div>
+    <div id="pc-list"></div>
+  </div>
+</div>
+
+<!-- 創作 -->
+<div class="pane" id="pane-create">
+  <div class="card">
+    <div class="field-label">🎨 新しいツール構想を追加</div>
+    <input type="text" id="cr-title" placeholder="ツール名・構想タイトル" style="margin-bottom:8px;">
+    <textarea id="cr-desc" placeholder="どんなツール？何を解決する？" rows="3" style="width:100%;margin-bottom:8px;resize:vertical;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;font-size:13px;color:var(--text);font-family:inherit;outline:none;"></textarea>
+    <input type="text" id="cr-tags" placeholder="タグ（カンマ区切り: 例 業務効率化,AI）" style="margin-bottom:10px;">
+    <button class="btn-secondary" onclick="addToolConcept()">追加</button>
+  </div>
+
+  <div class="card" style="padding:10px 12px;">
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
+      <button class="chip chip-gray" id="crf-all" onclick="setCreateFilter('all')">すべて</button>
+      <button class="chip chip-gray" id="crf-idea" onclick="setCreateFilter('idea')">💭 構想中</button>
+      <button class="chip chip-gray" id="crf-design" onclick="setCreateFilter('design')">📐 設計中</button>
+      <button class="chip chip-gray" id="crf-dev" onclick="setCreateFilter('dev')">🔨 開発中</button>
+      <button class="chip chip-gray" id="crf-done" onclick="setCreateFilter('done')">✅ 完成</button>
+    </div>
+    <div id="cr-stats" style="margin-bottom:8px;font-size:12px;color:var(--text-muted);"></div>
+    <div class="empty" id="cr-list-empty">まだツール構想がありません</div>
+    <div id="cr-list"></div>
+  </div>
+</div>
+
+<!-- アイデアストック -->
+<div class="pane" id="pane-ideas">
+  <div class="card">
+    <div class="field-label">💡 アイデアを追加</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      <button class="ebtn" id="idea-cat-work" onclick="setIdeaCat('work')" style="flex:1;padding:7px 0;">💼 仕事</button>
+      <button class="ebtn active" id="idea-cat-daily" onclick="setIdeaCat('daily')" style="flex:1;padding:7px 0;">☀️ 日常</button>
+    </div>
+    <input type="text" id="idea-input" placeholder="ひらめきを入力…" style="margin-bottom:10px;" onkeydown="if(event.key==='Enter'){event.preventDefault();addIdea();}">
+    <button class="btn-secondary" onclick="addIdea()">追加</button>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="field-label" style="margin-bottom:0;">📁 グループ管理</div>
+      <button class="btn-secondary" onclick="toggleIdeaGroupMgr()" style="padding:3px 10px;font-size:12px;" id="idea-grp-toggle">開く</button>
+    </div>
+    <div id="idea-grp-mgr" style="display:none;">
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <input type="text" id="idea-grp-name" placeholder="新しいグループ名…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addIdeaGroup();}">
+        <button class="btn-secondary" onclick="addIdeaGroup()">作成</button>
+      </div>
+      <div id="idea-grp-list"></div>
+    </div>
+  </div>
+
+  <div class="card" style="padding:10px 12px;">
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
+      <button class="chip chip-gray" id="idf-all" onclick="setIdeaFilter('cat','all')">📋 すべて</button>
+      <button class="chip chip-gray" id="idf-work" onclick="setIdeaFilter('cat','work')">💼 仕事</button>
+      <button class="chip chip-gray" id="idf-daily" onclick="setIdeaFilter('cat','daily')">☀️ 日常</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;" id="idea-grp-filters"></div>
+    <div style="display:flex;gap:4px;margin-bottom:10px;">
+      <button class="chip chip-gray" id="idf-active" onclick="setIdeaFilter('done','active')">未完了</button>
+      <button class="chip chip-gray" id="idf-done" onclick="setIdeaFilter('done','done')">DONE</button>
+      <button class="chip chip-gray" id="idf-dall" onclick="setIdeaFilter('done','all')">全部</button>
+    </div>
+    <div id="idea-stats" style="display:flex;gap:8px;margin-bottom:10px;font-size:12px;color:var(--text-muted);"></div>
+    <div class="empty" id="idea-list-empty">アイデアの種をまこう 🌱</div>
+    <div id="idea-list"></div>
+  </div>
+</div>
+
+<!-- 設定 -->
+<div class="pane" id="pane-settings">
+  <div class="card">
+    <div class="field-label">AI深掘り（Gemini）</div>
+    <p style="font-size:11px;color:var(--text-hint);margin-bottom:10px;line-height:1.5;">メモの「🤖 AIで深掘り」で使うGoogle GeminiのAPIキーを設定します。キーはこの端末のブラウザ内にのみ保存され、外部には送信されません（Gemini APIの呼び出しを除く）。<br>キーは <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="color:var(--accent);">Google AI Studio</a> で無料発行できます。</p>
+    <input type="password" id="set-gemini-key" placeholder="AIza… で始まるAPIキー" style="width:100%;margin-bottom:8px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+      <span style="font-size:13px;color:var(--text-muted);">生成の傾向</span>
+      <select id="set-gemini-tier" onchange="saveGeminiTier()" style="flex:1;min-width:160px;">
+        <option value="fast">速さ優先（Flash・無料枠たっぷり）</option>
+        <option value="smart">賢さ優先（Pro・無料枠は少なめ）</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-secondary" onclick="saveGeminiKey()">保存</button>
+      <button class="btn-secondary" onclick="clearGeminiKey()" style="color:#e05050;">削除</button>
+      <span id="gemini-key-status" style="font-size:12px;color:var(--text-hint);align-self:center;"></span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="field-label">タブの並び順</div>
+    <p style="font-size:11px;color:var(--text-hint);margin-bottom:12px;">▲▼ボタンで上部メニューの表示順を入れ替えられます</p>
+    <div id="tab-order-list"></div>
+  </div>
+  <div class="card">
+    <div class="field-label">曜日ごとの稼働時間</div>
+    <p style="font-size:11px;color:var(--text-hint);margin-bottom:12px;">ブロックを複数追加するとサンドイッチ勤務に対応できます</p>
+    <div id="dow-schedule-grid"></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="field-label" style="margin-bottom:0;">例外日</div>
+      <button onclick="addException()" class="btn-secondary" style="padding:3px 10px;font-size:12px;">＋追加</button>
+    </div>
+    <p style="font-size:11px;color:var(--text-hint);margin-bottom:12px;">特定の日付だけ曜日設定を上書きします</p>
+    <div id="exc-list"><div class="empty">例外日はありません</div></div>
+  </div>
+  <div class="card">
+    <div class="field-label">バックアップ</div>
+    <p style="font-size:11px;color:var(--text-hint);margin-bottom:12px;">全ページのデータをファイルに書き出し／読み込みできます。端末変更やキャッシュ削除に備えて定期的に保存してください。</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-secondary" onclick="exportData()">📥 エクスポート</button>
+      <button class="btn-secondary" onclick="document.getElementById('import-file').click()">📤 インポート</button>
+      <input type="file" id="import-file" accept="application/json" style="display:none;" onchange="importData(event)">
+    </div>
+  </div>
+</div>
+
+<!-- タスク -->
+<div class="pane" id="pane-tasks">
+  <div class="tabs" id="tasks-subtabs" style="margin-bottom:14px;">
+    <button class="subtab tab on" data-sub="tasks" onclick="setTasksSubView('tasks')">タスク一覧</button>
+    <button class="subtab tab" data-sub="cal" onclick="setTasksSubView('cal')">履歴カレンダー</button>
+  </div>
+  <div id="tasks-body">
+  <div class="card">
+    <div class="field-label">タスクを追加</div>
+    <input type="text" id="tname" placeholder="タスク名（Enterで追加）" style="margin-bottom:10px;" onkeydown="if(event.key==='Enter'){event.preventDefault();addTask();}">
+    <div class="input-row" style="margin-bottom:8px;">
+      <span style="font-size:13px;color:var(--text-muted);">所要時間</span>
+      <input type="number" id="thours" value="1" min="0.25" max="8" step="0.25">
+      <span style="font-size:13px;color:var(--text-muted);">h</span>
+      <span style="font-size:13px;color:var(--text-muted);margin-left:4px;">消費</span>
+      <select id="tenergy">
+        <option value="1">1 低</option><option value="2">2</option><option value="3">3</option>
+        <option value="4">4</option><option value="5" selected>5</option><option value="6">6</option>
+        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+        <option value="10">10 高</option>
+      </select>
+      <span style="font-size:13px;color:var(--text-muted);margin-left:4px;">重要度</span>
+      <select id="tprio">
+        <option value="1">1 低</option><option value="2">2</option><option value="3" selected>3</option>
+        <option value="4">4</option><option value="5">5 高</option>
+      </select>
+    </div>
+    <details style="margin-bottom:4px;">
+      <summary style="font-size:12px;color:var(--text-muted);cursor:pointer;padding:4px 0;user-select:none;">詳細設定（説明・ポイント・期限）</summary>
+      <p style="font-size:11px;color:var(--text-hint);margin:8px 0;line-height:1.5;">「消費」= そのタスクで使う気力（高いほど疲れる）。「重要度」= 優先したい度合い（高いほど大事）。どちらも数値が大きいほど優先順位で上位に来やすくなります。</p>
+      <div class="input-row" style="margin-bottom:4px;">
+      <span style="font-size:13px;color:var(--text-muted);">ポイント</span>
+      <input type="number" id="tcustompts" placeholder="自動" min="0" max="30" step="1" style="width:80px;">
+      <span style="font-size:12px;color:var(--text-hint);">空欄で自動計算</span>
+    </div>
+    <div class="input-row" style="margin-bottom:4px;">
+      <span style="font-size:13px;color:var(--text-muted);">期限種別</span>
+      <select id="tdeadline-type" onchange="onDeadlineTypeChange()">
+        <option value="none">なし</option>
+        <option value="date">特定の日付</option>
+        <option value="weekly">毎週◯曜日</option>
+        <option value="monthly">毎月◯日</option>
+      </select>
+    </div>
+    <div id="tdeadline-date-row" class="input-row" style="display:none;margin-bottom:4px;">
+      <span style="font-size:13px;color:var(--text-muted);">日付</span>
+      <input type="date" id="tdeadline-date" style="font-size:13px;padding:5px 8px;">
+      <select id="tdeadline-time"><option value="">時刻なし</option></select>
+    </div>
+    <div id="tdeadline-weekly-row" class="input-row" style="display:none;margin-bottom:4px;">
+      <span style="font-size:13px;color:var(--text-muted);">曜日</span>
+      <select id="tdeadline-dow">
+        <option value="0">日曜日</option><option value="1">月曜日</option><option value="2">火曜日</option>
+        <option value="3">水曜日</option><option value="4">木曜日</option><option value="5">金曜日</option><option value="6">土曜日</option>
+      </select>
+      <select id="tdeadline-time-w"><option value="">時刻なし</option></select>
+    </div>
+    <div id="tdeadline-monthly-row" class="input-row" style="display:none;margin-bottom:4px;">
+      <span style="font-size:13px;color:var(--text-muted);">毎月</span>
+      <select id="tdeadline-dom">
+        <option value="1">1日</option><option value="2">2日</option><option value="3">3日</option><option value="4">4日</option><option value="5">5日</option><option value="6">6日</option><option value="7">7日</option><option value="8">8日</option><option value="9">9日</option><option value="10">10日</option><option value="11">11日</option><option value="12">12日</option><option value="13">13日</option><option value="14">14日</option><option value="15">15日</option><option value="16">16日</option><option value="17">17日</option><option value="18">18日</option><option value="19">19日</option><option value="20">20日</option><option value="21">21日</option><option value="22">22日</option><option value="23">23日</option><option value="24">24日</option><option value="25">25日</option><option value="26">26日</option><option value="27">27日</option><option value="28">28日</option><option value="29">29日</option><option value="30">30日</option><option value="31">末日</option>
+      </select>
+      <select id="tdeadline-time-m"><option value="">時刻なし</option></select>
+    </div>
+    </details>
+    <div style="margin-top:10px;">
+      <button class="btn-secondary" onclick="addTask()">追加</button>
+    </div>
+  </div>
+  <div class="card" style="padding:10px 12px;">
+    <div class="field-label">登録済みタスク</div>
+    <div class="empty" id="tlist-empty">タスクがまだありません</div>
+    <div id="tlist"></div>
+  </div>
+  </div>
+</div>
+
+<!-- カレンダー -->
+<div class="pane" id="pane-cal">
+  <div class="card">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calMove(-1)">‹</button>
+      <span class="cal-title" id="cal-title"></span>
+      <button class="cal-nav" onclick="calMove(1)">›</button>
+      <div class="cal-view-toggle">
+        <button class="cal-view-btn active" id="vbtn-month" onclick="setCalView('month')">月</button>
+        <button class="cal-view-btn" id="vbtn-week" onclick="setCalView('week')">週</button>
+      </div>
+    </div>
+    <!-- month -->
+    <div id="cal-month-view">
+      <div class="cal-grid" id="cal-dow-row"></div>
+      <div class="cal-grid" style="margin-top:2px;" id="cal-body"></div>
+    </div>
+    <!-- week -->
+    <div id="cal-week-view" style="display:none;">
+      <div class="week-list" id="week-body"></div>
+    </div>
+  </div>
+  <div class="cal-detail" id="cal-detail" style="display:none;">
+    <div class="card">
+      <div class="cal-detail-title" id="cal-detail-title"></div>
+      <div id="cal-detail-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 優先順位 -->
+<div class="pane" id="pane-result">
+  <div id="result-section" style="display:flex;align-items:center;gap:8px;margin:6px 0 12px;">
+    <div style="flex:1;height:1px;background:var(--border);"></div>
+    <span style="font-size:12px;color:var(--accent);font-weight:700;white-space:nowrap;">今日の優先順位</span>
+    <div style="flex:1;height:1px;background:var(--border);"></div>
+  </div>
+  <div id="result-body" style="display:none;">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">利用可能</div><div class="stat-val" id="r-avail">—</div></div>
+      <div class="stat-card"><div class="stat-label">タスク計</div><div class="stat-val" id="r-total">—</div></div>
+      <div class="stat-card"><div class="stat-label">エネルギー</div><div class="stat-val" id="r-energy">—</div></div>
+    </div>
+    <div class="card" id="ranked"></div>
+    <button class="btn-primary" id="ta-batch-start" style="display:none;" onclick="taStartRanked()">▶ 上位タスクをまとめてタイムアタック</button>
+  </div>
+  <div class="empty" id="result-empty">「今日」タブで時間とエネルギーを入力してください</div>
+</div>
+
+</div>
+<!-- ボトムナビ -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button onclick="goHome()" id="bnav-home"><span class="bnav-icon">🏠</span><span class="bnav-label">ホーム</span></button>
+  <button onclick="showTop('tasks')" id="bnav-tasks"><span class="bnav-icon">✅</span><span class="bnav-label">タスク</span></button>
+  <button onclick="showTop('sns')" id="bnav-sns"><span class="bnav-icon">📱</span><span class="bnav-label">SNS運用</span></button>
+  <button onclick="toggleMoreMenu()" id="bnav-more"><span class="bnav-icon">⋯</span><span class="bnav-label">その他</span></button>
+</nav>
+<div class="more-menu" id="more-menu">
+  <button onclick="showTop('ideas')">💡 アイデア</button>
+  <button onclick="showTop('create')">🎨 創作</button>
+  <button onclick="showTop('knowledge')">📚 ナレッジ創出</button>
+  <button onclick="showTop('xp')">⭐ 経験値</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/bootstrap.js"></script>
+</body>
+</html>
